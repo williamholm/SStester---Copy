@@ -50,6 +50,16 @@ int main()
 	}
 	constexpr auto blah = Component<TEST_INT>::sparse[OBJECT];
 
+	getETContainingComp<Comp_ID::STATE>();
+	ET<ET_ID::MAGIC_ARROW>::noOfComponents;
+	ET<ET_ID::OBJ>::noOfComponents;
+	ET<ET_ID::PROJECTILE>::noOfComponents;
+	ET<ET_ID::MAGIC>::noOfComponents;
+
+	ET<ET_ID::MAGIC_ARROW>::components;
+	ET<ET_ID::OBJ>::components;
+	ET<ET_ID::PROJECTILE>::components;
+	ET<ET_ID::MAGIC>::components;
 
 	while (1) {}
 	return 0;

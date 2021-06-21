@@ -1,0 +1,23 @@
+Overall decisions
+
+-Should ETs contain other ETs? or should that be kept there too
+-Get a clearer idea of what should be contained in mEntityFlags/mEntityGroup.
+
+ET plan
+
+-Set up test classes for ET
+-Decide on Volitile/Const/Stable attributes for an ET for 2SS opt
+-Decide on better inheritance as at the moment it can easily break if you inherit from two parents
+which share a common parent.
+-Ordering of Components.
+
+Comp plan
+
+-get SS for each component which lists all ETs with that component in it.
+-Decide on multiple components in an ET
+
+
+2SS
+
+- Transfer to ET system
+- See class for improvements

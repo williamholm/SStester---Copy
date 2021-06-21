@@ -42,6 +42,8 @@ public:
 };
 
 
+//this system + ETinfo, use ETdata to for constructors???
+//sparse sets are friend classes?
 class Object : public Entity32Bit
 {
 public:
