@@ -1,7 +1,6 @@
 #pragma once
-#include "SparseSet.h"
-#include "EntityType.h"
-#include "Component.h"
+#include "Object.h"
+#include "PerfectET.hpp"
 /* FEATURES (k = no of Entity Types that this component can have, n is size of CDS)
 * 1 indirection, random access via entity number
 * o(1) access for each entity group
@@ -31,10 +30,13 @@ Improve Value sort -- work on typeSort2 -- Look into merge sorting. Quick sort i
 
 */
 
-template<ComponentID mID, class DataType = Component<mID>::type>
+
+
+template<Comp_ID mID, class DataType = Comp<mID>::type>
 class TwoSortsSparse
 {
-	using component = Component<mID>;
+	//not entirely sure why DataType needs to be specified here, but functionality is unchanged
+	using component = Comp<mID,DataType>;
 
 public: //switch to private after testing
 	std::vector<DataType> mCDS;		//component dense set
@@ -42,7 +44,7 @@ public: //switch to private after testing
 private:
 	std::vector<uint32_t> mSparse;
 	std::vector<uint32_t> mBounds;	//mBounds[i] is first index i'th ET for this SS
-	const int mNoOfBounds = Component<mID>::numberOfETs + 1;
+	const int mNoOfBounds = component::noOfETsWithComp + 1;
 public:
 	inline bool entityInSet(Entity32Bit entity) noexcept
 	{
@@ -55,8 +57,8 @@ public:
 
 	void addComponent(Entity32Bit entity, const DataType& data)
 	{
+		//remember this switches off in release mode.
 		assert(!entityInSet(entity) && validEntityGroup(entity));
-
 		mSparse[entity.number()] = mCDS.size();
 		mCDS.push_back(data);
 		mEDS.push_back(entity);
@@ -74,7 +76,7 @@ public:
 	}
 	//Inserts component into its ET group - requires max Component<mID>::numberOfETs * 2 swaps.
 	void quickInsert(int index)
-	{	
+	{
 		for (int i = component::sparse[mEDS[index].group()] + 1; i <= mNoOfBounds; ++i)
 		{
 			fullSwapComponent(index, mBounds[i]);
@@ -107,7 +109,7 @@ public:
 	//faster at least if mCDS is quick to copy ~60-200micro secs for sorting, keeps ordering - 100~500ms?? with reconect SS
 	void typeSort2()
 	{
-		auto temp = mBounds;		
+		auto temp = mBounds;
 		auto EDS = mEDS;
 		auto CDS = mCDS;
 		int size = mEDS.size();
@@ -115,8 +117,8 @@ public:
 		for (int i = 1; i < size; ++i)
 		{
 			++temp[component::sparse[EDS[i].group()]];
-			std::swap(CDS[i], mCDS[temp[component::sparse[EDS[i].group()]]-1]); //-1 as you need to increment b4 swapping;
-			std::swap(EDS[i], mEDS[temp[component::sparse[EDS[i].group()]]-1]);
+			std::swap(CDS[i], mCDS[temp[component::sparse[EDS[i].group()]] - 1]); //-1 as you need to increment b4 swapping;
+			std::swap(EDS[i], mEDS[temp[component::sparse[EDS[i].group()]] - 1]);
 		}
 		//links entity to components again after sorting. 
 		for (int i = 1; i < size; i++)
@@ -139,7 +141,7 @@ public:
 
 
 
-//internal algorithm
+	//internal algorithm
 private:
 
 	void stableSwapToBack(int index)
@@ -153,7 +155,7 @@ private:
 	//swaps EDS[index],CDS[index] to back, doesn't gaurentee ordering by val only by type.
 	void swapToBack(int index)
 	{
-		int nextType = component::sparse[mEDS[index].group()]+1;
+		int nextType = component::sparse[mEDS[index].group()] + 1;
 		fullSwapComponent(index, --mBounds[nextType]); //swap with last element in group
 		index = mBounds[nextType];
 
@@ -211,7 +213,7 @@ private:
 			{
 				internalQuickSort(startIndex, part);
 			}
-			if (endIndex - (part+1) < 32)
+			if (endIndex - (part + 1) < 32)
 			{
 				InsertSort(part + 1, endIndex);
 			}
@@ -251,8 +253,8 @@ private:
 	}
 
 public:
-	inline uint32_t groupBegin(EntityTypeID id) { return mBounds[component::sparse[id]]; }
-	inline uint32_t groupEnd(EntityTypeID id) { return mBounds[component::sparse[id]+1]; }
+	inline uint32_t groupBegin(ET_ID id) { return mBounds[component::sparse[id]]; }
+	inline uint32_t groupEnd(ET_ID id) { return mBounds[component::sparse[id] + 1]; }
 
 	//get component via entity number
 	inline DataType& operator[] (const Entity32Bit entity) noexcept
@@ -268,12 +270,12 @@ public:
 	TwoSortsSparse(uint32_t maxEntity)
 	{
 		mCDS.emplace_back(DataType());
-		mEDS.push_back(Entity32Bit());	
-		mBounds.resize(Component<mID>::numberOfETs + 2); //+1 as first is empty value for sparse set
+		mEDS.push_back(Entity32Bit());
+		mBounds.resize(component::noOfETsWithComp + 2); //+1 as first is empty value for sparse set
 		mSparse.resize(maxEntity);
 
 		//increment by one to account for 0 being reserved by SS
-		for (auto &bound : mBounds) {++bound;}
+		for (auto& bound : mBounds) { ++bound; }
 	}
 
 	TwoSortsSparse()

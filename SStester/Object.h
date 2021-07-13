@@ -1,6 +1,5 @@
 #pragma once
-#include "EntityManager.h"
-
+#include "PerfectET.hpp"
 static constexpr uint32_t maxEntityFlag = 0xFFF;
 static constexpr uint32_t maxEntityNumber = 0xFFFFF;
 static constexpr uint32_t entityValueBits = 20;
@@ -8,6 +7,7 @@ static constexpr uint32_t Full20Bit = 0xFFFFF;
 
 inline uint32_t getEntityNum(uint32_t entity) { return (maxEntityNumber & entity); }
 inline uint32_t getEntityId(uint32_t entity) { return ((entity >> entityValueBits) & maxEntityFlag); }
+
 
 //options with this set up: max 1m entities, 4095 different entity types for quick searching (maybe split larger groups for MergeSort?)
 class Entity32Bit
@@ -42,8 +42,14 @@ public:
 };
 
 
-//this system + ETinfo, use ETdata to for constructors???
-//sparse sets are friend classes?
+/*
+* METHOD 1 classes
+* 
+* Pros:
+* 
+* Cons:
+*/
+
 class Object : public Entity32Bit
 {
 public:
@@ -72,3 +78,4 @@ public:
 	}
 	~PhysicsObject() = default;
 };
+

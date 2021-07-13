@@ -2,9 +2,8 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
-
 #include "SparseSet.h"
-#include "Object.h"
+//#include "Object.h"
 
 /* Design:
 * 
@@ -29,23 +28,9 @@ ETs with no overlapping components).
 class EntityManager
 {
 private:
-	std::vector<void*> mpSparseSets;
-	std::vector<std::vector<uint32_t>> mAvailableEntityValues;
 public:
 
-	Entity32Bit createEntity(int entityTypeName, uint32_t flags,...);
-	//either marks as to be deleted or instant deletetion
-	void deleteEntity(Entity32Bit entity);
-	//deletes all flagged entities - might be slower to do this not sure
-	void deleteEntities();
-	void* createComponentMSS(int componentName);
-	//access all entitity and its inheritors data.
-	void* getData(int entityTypeName);
-	//access to components from entitity and its inheritors data. -- want this to be main access patern
-	void* getData(int entityTypeName, std::vector<int> components);
-	//access all components data This might be uneeded
-	void* getData(std::vector<int> components);
-
+	
 	EntityManager();
 	~EntityManager();
 

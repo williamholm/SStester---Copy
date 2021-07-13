@@ -24,9 +24,6 @@
     <ClInclude Include="EntityTester.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EntityType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FunctionTimer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -37,9 +34,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EntityFlags.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PerfectET.hpp">

@@ -1,23 +1,46 @@
+Short term tasks:
+
+make sure no doubling of inheritance occurs.
+
+
+
 Overall decisions
 
--Should ETs contain other ETs? or should that be kept there too
+-Should ETs contain other ETs? or should that be kept there too.
+-How should ETInfos be made / stored. current method is kinda horrible - Engine editor?.
 -Get a clearer idea of what should be contained in mEntityFlags/mEntityGroup.
+
+EM plan
+
+-???
 
 ET plan
 
--Set up test classes for ET
--Decide on Volitile/Const/Stable attributes for an ET for 2SS opt
+-Should ETs have multiple names or should this be done elsewhere eg should gaurd = bandit should there ETs for both to search. currently yes
+is there negative to large amount of groups? is there a better way than just doing the obvious?
+
+-Decide on Volitile/Const/Stable attributes for an ET for 2SS opt - need to change from sparse to hash esq system for storing ET in compArray.
+HACKY SOLUTION IN PLACE SEE ET_ID ENUM - MIGHT MAKE INHERITANCE ORDERING MORE AWKWARD
+
+-Set up test classes for ET. DONE, can always be done more though
+
+-Decide on more than one of each component per ET. - 2ss doesn't work well as there is no obv way (other than flags) to indicate if things 
+are sorted by value. If stuff isn't sorted by value, then 2SS works for this. 
+
 -Decide on better inheritance as at the moment it can easily break if you inherit from two parents
-which share a common parent.
+which share a common parent. (easy way of doing this is to write a delete duplicate function in, to delete duplicate components.)
+
 -Ordering of Components.
+
+-Add Children. DONE
 
 Comp plan
 
--get SS for each component which lists all ETs with that component in it.
--Decide on multiple components in an ET
+-get SS for each component which lists all ETs with that component in it. DONE
+-Decide on multiple components in an ET - Should be an option, for now unique to components that are not sortable.
 
 
 2SS
 
-- Transfer to ET system
+- Transfer to ET system DONE
 - See class for improvements

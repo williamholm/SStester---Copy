@@ -116,6 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,11 +142,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="2SortsSparse.hpp" />
-    <ClInclude Include="Component.h" />
     <ClInclude Include="EntityFlags.h" />
     <ClInclude Include="EntityManager.h" />
     <ClInclude Include="EntityTester.h" />
-    <ClInclude Include="EntityType.h" />
     <ClInclude Include="FunctionTimer.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="PerfectET.hpp" />
