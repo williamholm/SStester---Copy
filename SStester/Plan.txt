@@ -9,6 +9,7 @@ Overall decisions
 -Should ETs contain other ETs? or should that be kept there too.
 -How should ETInfos be made / stored. current method is kinda horrible - Engine editor?.
 -Get a clearer idea of what should be contained in mEntityFlags/mEntityGroup.
+-Multi-Threading
 
 EM plan
 
@@ -27,10 +28,10 @@ HACKY SOLUTION IN PLACE SEE ET_ID ENUM - MIGHT MAKE INHERITANCE ORDERING MORE AW
 -Decide on more than one of each component per ET. - 2ss doesn't work well as there is no obv way (other than flags) to indicate if things 
 are sorted by value. If stuff isn't sorted by value, then 2SS works for this. 
 
--Decide on better inheritance as at the moment it can easily break if you inherit from two parents
-which share a common parent. (easy way of doing this is to write a delete duplicate function in, to delete duplicate components.)
+-Decide on better inheritance as at the moment it can easily break if you inherit from two parents which share a common parent. DONE (needed to updated
+ET components though as that is still old)
 
--Ordering of Components.
+-Ordering of Components - not sure if it matters.
 
 -Add Children. DONE
 

@@ -5,6 +5,7 @@
 #include <random>
 #include "FunctionTimer.h"
 #include "2SortsSparse.hpp"
+#include "SparseSet.h"
 //small test large class. Need to change and have overloaded < operater for some sort functionality.
 
 

@@ -66,6 +66,7 @@ public:
 
 enum ET_ID
 {
+	//UTILITY
 	BLANK_FOR_SPARSE,
 	//STABLE ETS
 	//NORMAL ETS
@@ -84,7 +85,7 @@ enum ET_ID
 	ARROW,
 	//VOLALTILE ETS
 	MAGIC_ARROW,
-
+	//UTILITY
 	MAX_ET_ID
 };
 
@@ -158,6 +159,44 @@ constexpr std::array<T, N + 1> concatinate(const std::array<T, N>& arr1, const T
 	temp[N] = x;
 
 	return temp;
+}
+
+template<int N>
+constexpr int noOfUniqueET_IDs(const std::array<ET_ID, N>& arr)
+{
+	std::array<bool, ET_ID::MAX_ET_ID> isDuplicate = {};//initialized to false (not sure if this is always standard)
+	int noOfUniqueETs = 0;
+	for (int i = 0; i < N; ++i)
+	{
+		if (!isDuplicate[arr[i]])
+		{
+			++noOfUniqueETs;
+			isDuplicate[arr[i]] = true;
+		}
+	}
+	return noOfUniqueETs;
+}
+//better way to get rather than using the second array
+template< int M, int N>
+constexpr auto uniqueET_IDs(const std::array<ET_ID,N>& arr)
+{
+	std::array<bool, ET_ID::MAX_ET_ID> isDuplicate = {};//initialized to false (not sure if this is always standard)
+	std::array<ET_ID, M> temp = {};
+	int noOfUniqueETs = 0;
+	if (M != 0)
+	{
+		for (int i = 0; i < N; ++i)
+		{
+			if (!isDuplicate[arr[i]])
+			{
+				temp[noOfUniqueETs] = arr[i];
+				++noOfUniqueETs;
+				isDuplicate[arr[i]] = true;
+			}
+		}
+	}
+	return temp;
+
 }
 
 //Information user inputs for new Components(try move to new folder)
@@ -646,8 +685,8 @@ struct ET
 	static constexpr int noOfDirectInheritors = getNoOfDirectInheritors<id>::value;
 	static constexpr std::array<ET_ID, noOfDirectInheritors> directInheritors = getDirectInheritors<id>::value;
 	//which ETs are an ET<id> (not just direct inheritors), used for searches. 
-	static constexpr int noOfInheritors = getNoOfInheritors<id>::value;
-	static constexpr std::array<ET_ID, noOfInheritors> inheritors = getInheritors<id>::value;
+	static constexpr int noOfInheritors = noOfUniqueET_IDs(getInheritors<id>::value);
+	static constexpr std::array<ET_ID, noOfInheritors> inheritors = uniqueET_IDs<noOfInheritors>(getInheritors<id>::value);
 	//contains these ETs
 	static constexpr int NoOfETs = ETInfo<id>::NoOfETs;
 	static constexpr std::array<ET_ID, NoOfETs> ETs = ETInfo<id>::ETs;

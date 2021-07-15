@@ -1,4 +1,5 @@
 #pragma once
+#include <assert.h>
 #include "PerfectET.hpp"
 static constexpr uint32_t maxEntityFlag = 0xFFF;
 static constexpr uint32_t maxEntityNumber = 0xFFFFF;

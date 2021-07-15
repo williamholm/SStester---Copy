@@ -51,29 +51,56 @@ Entity32Bit createPhsicsObject()
 {
 	return(Entity32Bit());
 }
+
 template<ET_ID id>
 class Entity
 {
 
-	void getComponent();
 	Entity() {}
 	~Entity() {}
 };
 template<>
-class Entity<OBJ>
+class Entity<OBJ> 
 {
+	Entity32Bit entityNum;
 	static constexpr auto bl = ETInfo<ET_ID::OBJ>::newComponents;
 	Entity() {}
 	~Entity() {}
 };
 
+template<>
+class Entity<PHYS_OBJ> : Entity<OBJ>
+{
+
+};
+
+template<>
+class Entity<ARROW> : Entity<PHYS_OBJ>
+{
+
+};
+template<>
+class Entity<CREATURE> : Entity<PHYS_OBJ>
+{
+
+};
+
+template<>
+class Entity<PC> : Entity<CREATURE>
+{
+	//inherits creation via data packets
+	void writeComponent();//is this better than doing shit as function with manager / system combo?
+	void readComponent();
+	//other entitys
+	Entity<ARROW> arrow;
+};
 
 int main()
 {
 	ET<ET_ID::OBJ>::noOfDirectInheritors;
 	ET<ET_ID::OBJ>::directInheritors;
 	ET<ET_ID::OBJ>::noOfInheritors;
-	ET<ET_ID::OBJ>::inheritors; //talking wolf x2, need to solve this, and solve double inherited components.
+	ET<ET_ID::OBJ>::inheritors;
 
 	ET<ET_ID::PHYS_OBJ>::noOfInheritors;
 	ET<ET_ID::PHYS_OBJ>::directInheritors;
@@ -83,9 +110,11 @@ int main()
 	ET<ET_ID::CREATURE>::directInheritors;
 
 	ET<ET_ID::MAGIC_ARROW>::noOfInheritors;
-	ET<ET_ID::MAGIC_ARROW>::inheritors;
+	ET<ET_ID::MAGIC_ARROW>::inheritors; //how the fuck does an array of size 0 have a value??????
 
 
+	ET<ET_ID::TALKING_WOLF>::noOfInheritors;
+	ET<ET_ID::TALKING_WOLF>::inheritors;
 
 	ET<ET_ID::MAGIC_ARROW>::noOfComponents;
 	ET<ET_ID::OBJ>::noOfComponents;
@@ -111,8 +140,7 @@ int main()
 	{
 		if (ComponentArray<Comp_ID::POS3D>::value[(i % MAX_ET_ID) + 1])
 		{
-	//		std::cout << (i % MAX_ET_ID) + 1 << "\n";
-			bo.addComponent(Entity32Bit(i, (i % MAX_ET_ID) + 1), vec3(i % 14, i % 14, i % 14));
+			bo.addComponent(Entity32Bit(i, (i % MAX_ET_ID)+1), vec3(i % (2*MAX_ET_ID), i % (2 * MAX_ET_ID), i % (2 * MAX_ET_ID)));
 			testVec.push_back(vec3(i % 14, i % 14, i % 14));
 		}
 
@@ -129,10 +157,10 @@ int main()
 	bo.typeSort();
 	timer.printTime(std::string("\ntype sort 1 "));
 
-	for (int i = 5; i < 10000; i += 14)
-	{
-		bo.deleteComponent(Entity32Bit(i, 5));
-	}
+//	for (int i = 5; i < 10000; i += 2 * MAX_ET_ID)
+//	{
+//		bo.deleteComponent(Entity32Bit(i, 5));
+//	}
 
 
 	for (int j = 1; j < ET_ID::MAX_ET_ID; j++)

@@ -2,7 +2,9 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
-#include "SparseSet.h"
+#include "PerfectET.hpp"
+#include "Object.h"
+#include "2SortsSparse.hpp"
 //#include "Object.h"
 
 /* Design:
@@ -24,15 +26,20 @@ ETs with no overlapping components).
 
 */
 
-
-class EntityManager
+template<Comp_ID id>
+class SparseManager
 {
 private:
+	//this should almost always point to same vector
+	std::array<uint32_t, maxEntityNumber>* pAvailableEntityNums;
+	//This is general - if you want to overload an entity num this won't help
+	uint32_t* pNextAvailableEntityNum;
+//	TwoSortsSparse<id> sparse;
 public:
 
 	
-	EntityManager();
-	~EntityManager();
+	SparseManager();
+	~SparseManager();
 
 
 };
