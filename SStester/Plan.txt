@@ -2,8 +2,11 @@ Short term tasks:
 
 make sure no doubling of inheritance occurs.
 
+figure out how to get data access the data in ET<id>. atm for loops and functions don't work so you are stuck with using structs - try EM search functions to
+see if this problem is unsolvable. if it is move PET into new solution and have it compile data into a constexpr, non-static access only way.
 
-
+method 1: concatinate all size of arrays, and all arrays, then use sizes as bounds and cycle through them in for loops. DONE for components
+method 1 improvement finish test class - this is likely an alright way to store data in the event switching to 2 solutions is required.
 Overall decisions
 
 -Should ETs contain other ETs? or should that be kept there too.

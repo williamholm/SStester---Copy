@@ -120,8 +120,10 @@ enum  ETattributes
 	CONSTANT //no changes to components.
 
 };
+
+//returns true if x is in given array 
 template<class T, int N>
-constexpr bool isInArray(T x, std::array<T, N> arr)
+constexpr bool isInArray(const T& x, const std::array<T, N>& arr)
 {
 	for (const auto& y : arr)
 	{
@@ -133,7 +135,7 @@ constexpr bool isInArray(T x, std::array<T, N> arr)
 	return false;
 }
 
-template<class T, int N, int M>
+template<class T, int N, int M> 
 constexpr std::array<T, N + M> concatinate(const std::array<T, N>& arr1, const std::array<T, M>& arr2)
 {
 	std::array<T, N + M> temp = {};
@@ -161,6 +163,21 @@ constexpr std::array<T, N + 1> concatinate(const std::array<T, N>& arr1, const T
 	return temp;
 }
 
+template<class T, int N> //for adding a single value to start of array
+constexpr std::array<T, N + 1> concatinate(const T& x, const std::array<T, N>& arr1)
+{
+	std::array<T, N + 1> temp = {};
+	for (int i = 0; i < N; ++i)
+	{
+		temp[i+1] = arr1[i];
+	}
+	temp[0] = x;
+
+	return temp;
+}
+
+
+//counts the number of unique ids in given array
 template<int N>
 constexpr int noOfUniqueET_IDs(const std::array<ET_ID, N>& arr)
 {
@@ -176,7 +193,7 @@ constexpr int noOfUniqueET_IDs(const std::array<ET_ID, N>& arr)
 	}
 	return noOfUniqueETs;
 }
-//better way to get rather than using the second array
+//returns array of all unique ids in given array
 template< int M, int N>
 constexpr auto uniqueET_IDs(const std::array<ET_ID,N>& arr)
 {
@@ -198,6 +215,7 @@ constexpr auto uniqueET_IDs(const std::array<ET_ID,N>& arr)
 	return temp;
 
 }
+
 
 //Information user inputs for new Components(try move to new folder)
 #pragma region Compinfo
@@ -280,8 +298,6 @@ struct ETInfo
 	//what new components are there. 
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = {};
-
-
 };
 
 template<>
@@ -298,7 +314,6 @@ struct ETInfo<ET_ID::OBJ>
 	//what new components are there. 
 	static constexpr int noOfNewComponents = 2;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = { Comp_ID::STATE, Comp_ID::POS3D };
-
 };
 
 template<>
@@ -534,66 +549,6 @@ struct ETInfo<ET_ID::MAGIC_ARROW>
 <MA,2,-1> (termination)
 
 */
-#pragma region getComponentsFunctions
-
-//not 100% sure if this is needed, but no harm in keeping for now - is slightly easier to test than getComponents anway.
-template<ET_ID id, int inheritsFromSize = ETInfo<id>::inheritsFromSize, int index = ETInfo<id>::inheritsFromSize - 1>
-struct getNoOfComponents
-{
-	static constexpr int value = ETInfo<ETInfo<id>::inheritsFrom[index]>::noOfNewComponents
-		+ getNoOfComponents<ETInfo<id>::inheritsFrom[index]>::value
-		+ getNoOfComponents<id, inheritsFromSize, index - 1>::value;
-};
-
-template<ET_ID id, int index>
-struct getNoOfComponents <id, 0, index>
-{
-	static constexpr int value = 0;
-};
-
-template<ET_ID id, int inheritsFromSize>
-struct getNoOfComponents <id, inheritsFromSize, -1>
-{
-	static constexpr int value = 0;
-};
-
-//need this specialization for as previous two are equal in this instance
-template<ET_ID id>
-struct getNoOfComponents <id, 0, -1>
-{
-	static constexpr int value = 0;
-};
-
-//constexpr function to get all components from parents of an ET. Takes an ET_ID only.
-template<ET_ID id, int inheritsFromSize = ETInfo<id>::inheritsFromSize, int index = ETInfo<id>::inheritsFromSize - 1>
-struct getComponents
-{
-	static constexpr auto value = concatinate
-	(concatinate(ETInfo<ETInfo<id>::inheritsFrom[index]>::newComponents, getComponents<ETInfo<id>::inheritsFrom[index]>::value),
-		getComponents<id, inheritsFromSize, index - 1>::value);
-};
-
-template<ET_ID id, int index>
-struct getComponents <id, 0, index>
-{
-	static constexpr std::array<Comp_ID, 0> value = {};
-};
-
-template<ET_ID id, int inheritsFromSize>
-struct getComponents <id, inheritsFromSize, -1>
-{
-	static constexpr std::array<Comp_ID, 0> value = {};
-};
-
-//need this specialization for as previous two are equal in this instance
-template<ET_ID id>
-struct getComponents <id, 0, -1>
-{
-	static constexpr std::array<Comp_ID, 0> value = {};
-};
-
-#pragma endregion
-
 //iterates though ET_ID's, finding ids direct inheritors
 #pragma region DirectInheritorFunctions
 
@@ -670,6 +625,103 @@ struct getInheritors<id, noOfDirectInheritors, noOfDirectInheritors>
 {
 	static constexpr std::array<ET_ID, noOfDirectInheritors> value = getDirectInheritors<id>::value;
 };
+
+
+#pragma endregion
+
+#pragma region ParentFunctions
+
+template<ET_ID id, int noOfDirectParents = ETInfo<id>::inheritsFromSize, int index = 0 >
+struct getNoOfParents
+{
+	static constexpr int value = getNoOfParents<ETInfo<id>::inheritsFrom[index]>::value
+		+ getNoOfParents<id, noOfDirectParents, index + 1>::value;
+};
+
+template<ET_ID id, int noOfDirectParents>
+struct getNoOfParents<id, noOfDirectParents, noOfDirectParents>
+{
+	static constexpr int value = noOfDirectParents;
+};
+
+template<ET_ID id, int noOfDirectParents = ETInfo<id>::inheritsFromSize, int index = 0>
+struct getParents
+{
+	static constexpr auto value = concatinate(getParents<id, noOfDirectParents, index + 1>::value,
+		getParents<ETInfo<id>::inheritsFrom[index]>::value);
+};
+
+template<ET_ID id, int noOfDirectParents>
+struct getParents<id, noOfDirectParents, noOfDirectParents>
+{
+	static constexpr std::array<ET_ID, noOfDirectParents> value = ETInfo<id>::inheritsFrom;
+};
+
+#pragma endregion
+
+#pragma region ComponentsFunctions
+
+//not 100% sure if this is needed, but no harm in keeping for now - is slightly easier to test than getComponents anway.
+template<ET_ID id, int inheritsFromSize = ETInfo<id>::inheritsFromSize, int index = ETInfo<id>::inheritsFromSize - 1>
+struct getNoOfComponents
+{
+	static constexpr int value = ETInfo<ETInfo<id>::inheritsFrom[index]>::noOfNewComponents
+		+ getNoOfComponents<ETInfo<id>::inheritsFrom[index]>::value
+		+ getNoOfComponents<id, inheritsFromSize, index - 1>::value;
+};
+
+template<ET_ID id, int index>
+struct getNoOfComponents <id, 0, index>
+{
+	static constexpr int value = 0;
+};
+
+template<ET_ID id, int inheritsFromSize>
+struct getNoOfComponents <id, inheritsFromSize, -1>
+{
+	static constexpr int value = 0;
+};
+
+//need this specialization for as previous two are equal in this instance
+template<ET_ID id>
+struct getNoOfComponents <id, 0, -1>
+{
+	static constexpr int value = 0;
+};
+
+//constexpr function to get all components from parents of an ET. Takes an ET_ID only.
+template<ET_ID id, int inheritsFromSize = ETInfo<id>::inheritsFromSize, int index = ETInfo<id>::inheritsFromSize - 1>
+struct getComponents
+{
+	static constexpr auto value = concatinate
+	(concatinate(ETInfo<ETInfo<id>::inheritsFrom[index]>::newComponents, getComponents<ETInfo<id>::inheritsFrom[index]>::value),
+		getComponents<id, inheritsFromSize, index - 1>::value);
+};
+
+template<ET_ID id, int index>
+struct getComponents <id, 0, index>
+{
+	static constexpr std::array<Comp_ID, 0> value = {};
+};
+
+template<ET_ID id, int inheritsFromSize>
+struct getComponents <id, inheritsFromSize, -1>
+{
+	static constexpr std::array<Comp_ID, 0> value = {};
+};
+
+//need this specialization for as previous two are equal in this instance
+template<ET_ID id>
+struct getComponents <id, 0, -1>
+{
+	static constexpr std::array<Comp_ID, 0> value = {};
+};
+
+template<ET_ID id, int index = 0>
+struct GNC
+{ 
+	static constexpr int value = 0;
+};
 #pragma endregion
 
 
@@ -690,18 +742,66 @@ struct ET
 	//contains these ETs
 	static constexpr int NoOfETs = ETInfo<id>::NoOfETs;
 	static constexpr std::array<ET_ID, NoOfETs> ETs = ETInfo<id>::ETs;
+	//All parents
+	static constexpr int noOfParents = noOfUniqueET_IDs(getParents<id>::value);
+	static constexpr std::array<ET_ID, noOfParents> parents = uniqueET_IDs<noOfParents>(getParents<id>::value);
 	//what new components are there. 
 	static constexpr int noOfComponents = getNoOfComponents<id>::value + ETInfo<id>::noOfNewComponents;
 	static constexpr std::array<Comp_ID, noOfComponents> components = concatinate(getComponents<id>::value,ETInfo<id>::newComponents);
 
 };
-
-template<ET_ID ...ids>
-struct ETData
+#pragma region Static To Non-Static Access
+//this is a method to allow for loops in general code. it gives componentAccess[componentBounds[ET_ID]...componentBounds[ET_ID+1]] = all ET<ET_ID>
+//components, allowing for for loops as you can do
+//
+//for(auto : ET<id>::inheritors)
+//	for(i = CB[auto]; i < CB[auto+1]; ++i ) {dosomething(CA[i])}
+template<class T, int BoundsSize, int DataSize>
+class BoundsArray
 {
-	//fill in a new entity by extracting from ETInfo
-	//this might not be possible, and if it is it might still be better to do via inheritance.
+public:
+
+	std::array<int, BoundsSize> mBounds;
+	std::array<T, DataSize> mData;
+	constexpr inline T operator[](unsigned int i)
+	{
+		return mData[i];
+	}
+	constexpr BoundsArray(const std::array<int, BoundsSize>& bounds, const std::array<T, DataSize>& data) : mBounds(bounds), mData(data) {}
+	~BoundsArray() = default;
+	
 };
+template<int currentBounds = 0, int index = 0>
+struct componentBounds
+{
+	static constexpr std::array<int,MAX_ET_ID - index + 1> value = concatinate(currentBounds,
+		componentBounds<ET<(ET_ID)(index)>::noOfComponents + currentBounds,index+1>::value
+		);
+};
+
+template<int currentBounds>
+struct componentBounds<currentBounds,MAX_ET_ID>
+{
+	static constexpr std::array<int, 1> value = { currentBounds };
+};
+
+
+
+template<int index = 0>
+struct componentAccess
+{
+	static constexpr auto value = concatinate(ET<(ET_ID)index>::components, componentAccess<index + 1>::value);
+};
+
+template<>
+struct componentAccess<MAX_ET_ID>
+{
+	static constexpr std::array<Comp_ID, 0> value = { };
+};
+
+
+#pragma endregion
+
 
 /*
 Method of compiling data from ET, as for loops don't work to scroll through ET<i> in constexpr function.

@@ -25,21 +25,32 @@ ETs with no overlapping components).
 
 
 */
+class EntityManager
+{
 
-template<Comp_ID id>
+	EntityManager() {};
+	~EntityManager() {};
+};
+template<Comp_ID id, class ComponentType = CompInfo<id>::type>
 class SparseManager
 {
 private:
-	//this should almost always point to same vector
+	//this should almost always point to same vector - should be moved to EM? why is this needed?
 	std::array<uint32_t, maxEntityNumber>* pAvailableEntityNums;
 	//This is general - if you want to overload an entity num this won't help
 	uint32_t* pNextAvailableEntityNum;
-//	TwoSortsSparse<id> sparse;
+	TwoSortsSparse<id, ComponentType> mSparseSet;
 public:
 
 	
-	SparseManager();
-	~SparseManager();
+	void readET(ET_ID id);
+	void writeET(ET_ID id);
+	void addEntity(Entity32Bit entity);
+	void deleteEntity(Entity32Bit entity);
+	
+	//wtf is the point of doing this outside of SS?? scheduler/batch adding can be done here i guess?
+	SparseManager() {}
+	~SparseManager() = default;
 
 
 };

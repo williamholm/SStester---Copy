@@ -4,7 +4,7 @@
 #include "EntityManager.h"
 #include "2SortsSparse.hpp"
 #include "PerfectET.hpp"
-
+#include <cstdint>
 /*
 Ordered Sparse Requirements:
 
@@ -36,21 +36,30 @@ Sorting:
 game dev rules:
 try and store states outside of gameloop.
 */
+/*
+Flaws
 
+cannot do something like for loops as non static cannot be used as template args
+
+can't
+void foo(ET_ID id){ ET<id>::components}
+can
+template<ET_ID id>
+void boo() {ET<id>::components}.
+
+1)Live with it
+2)Just make the editor
+
+*/
 /*
 * METHOD 2 Basic Functions
 */
 
-Entity32Bit createObjet()
+union ETs
 {
-
-	return(Entity32Bit());
-
-}
-Entity32Bit createPhsicsObject()
-{
-	return(Entity32Bit());
-}
+	ET<ARROW> Arrow;
+	ET<MAGIC_ARROW> MagicArrow;
+};
 
 template<ET_ID id>
 class Entity
@@ -67,13 +76,11 @@ class Entity<OBJ>
 	Entity() {}
 	~Entity() {}
 };
-
 template<>
 class Entity<PHYS_OBJ> : Entity<OBJ>
 {
 
 };
-
 template<>
 class Entity<ARROW> : Entity<PHYS_OBJ>
 {
@@ -84,7 +91,6 @@ class Entity<CREATURE> : Entity<PHYS_OBJ>
 {
 
 };
-
 template<>
 class Entity<PC> : Entity<CREATURE>
 {
@@ -95,8 +101,57 @@ class Entity<PC> : Entity<CREATURE>
 	Entity<ARROW> arrow;
 };
 
+//want to make this a for loop to use an array to cycle through ET<id>.
+template<int N, const std::array<ET_ID,N>& arr, int index = 0>
+struct static_for
+{
+	static void loop(std::function< void(ET_ID)> func)
+	{
+		//either need to write each loop here, or find a way to utilize 
+		for (int i = 0; i < ET<arr[index]>::noOfParents; ++i)
+		{
+			func(ET<arr[index]>::parents[i]);
+			//apply func to each parrents, then scroll through ETARR and do same to next in arr.
+			//can use constexpr bounded array for accessing components if function needs to do that.
+			//need loop for each parents
+		}
+		//or
+		static_for<ET<arr[index]>::noOfParents, ET<arr[index]>::parents>::loop(func);
+
+
+		//continue looping
+		static_for< N, arr, index + 1>::loop(func);
+	}
+};
+//termination specialization
+template<int N, const std::array<ET_ID, N>& arr>
+struct static_for<N,arr,N>
+{
+	static void loop(std::function< void(ET_ID)> func){}
+};
+
+void testery(ET_ID)
+{
+
+}
 int main()
 {
+	//maybe useful but doesn't seem to help with loops
+	constexpr ETs boo{};
+	boo.Arrow.parents;
+
+	std::function<void(ET_ID)> testerytest = testery;
+	static_for<ET<ARROW>::noOfParents, ET<ARROW>::parents>::loop(testerytest);
+
+	constexpr BoundsArray<Comp_ID, MAX_ET_ID+1,componentBounds<>::value[MAX_ET_ID]> tester(componentBounds<>::value, componentAccess<>::value);
+	componentBounds<>::value;
+	constexpr auto brackish = componentBounds<>::value; //need to shift so its {0,0,2...}
+	componentAccess<>::value;
+	SparseManager<Comp_ID::MASS> sparsey;
+	ET<ET_ID::TALKING_WOLF>::noOfParents; //need to remove duplicate from what its inheriting.
+	ET<ET_ID::TALKING_WOLF>::parents; //need to remove duplicate from what its inheriting.
+	ET<ET_ID::MAGIC_ARROW>::parents;
+
 	ET<ET_ID::OBJ>::noOfDirectInheritors;
 	ET<ET_ID::OBJ>::directInheritors;
 	ET<ET_ID::OBJ>::noOfInheritors;
@@ -105,20 +160,12 @@ int main()
 	ET<ET_ID::PHYS_OBJ>::noOfInheritors;
 	ET<ET_ID::PHYS_OBJ>::directInheritors;
 	ET<ET_ID::PHYS_OBJ>::inheritors;
-
-	ET<ET_ID::CREATURE>::noOfInheritors;
-	ET<ET_ID::CREATURE>::directInheritors;
-
-	ET<ET_ID::MAGIC_ARROW>::noOfInheritors;
-	ET<ET_ID::MAGIC_ARROW>::inheritors; //how the fuck does an array of size 0 have a value??????
-
-
-	ET<ET_ID::TALKING_WOLF>::noOfInheritors;
-	ET<ET_ID::TALKING_WOLF>::inheritors;
-
 	ET<ET_ID::MAGIC_ARROW>::noOfComponents;
+	constexpr auto t3 = componentBounds<>::value[MAGIC_ARROW+1]-componentBounds<>::value[MAGIC_ARROW];
 	ET<ET_ID::OBJ>::noOfComponents;
+	constexpr auto t2 = componentBounds<>::value[OBJ+1] - componentBounds<>::value[OBJ];
 	ET<ET_ID::PROJECTILE>::noOfComponents;
+	constexpr auto t1 = componentBounds<>::value[PROJECTILE];
 	ET<ET_ID::MAGIC>::noOfComponents;
 	ET<MAX_ET_ID>::noOfComponents;
 	ET<ET_ID::MAGIC_ARROW>::components;
