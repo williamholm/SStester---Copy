@@ -91,6 +91,7 @@ enum ET_ID
 
 enum class Comp_ID
 {
+	BLANK,
 	STATE,
 	POS3D,
 	MOD,
@@ -135,7 +136,7 @@ constexpr bool isInArray(const T& x, const std::array<T, N>& arr)
 	return false;
 }
 
-template<class T, int N, int M> 
+template<class T, int N, int M> //constexpr concatination of two arrays of the same type.
 constexpr std::array<T, N + M> concatinate(const std::array<T, N>& arr1, const std::array<T, M>& arr2)
 {
 	std::array<T, N + M> temp = {};
@@ -162,7 +163,6 @@ constexpr std::array<T, N + 1> concatinate(const std::array<T, N>& arr1, const T
 
 	return temp;
 }
-
 template<class T, int N> //for adding a single value to start of array
 constexpr std::array<T, N + 1> concatinate(const T& x, const std::array<T, N>& arr1)
 {
@@ -176,6 +176,42 @@ constexpr std::array<T, N + 1> concatinate(const T& x, const std::array<T, N>& a
 	return temp;
 }
 
+//returns array with new size, all new T's are default initialized at end of original array. 
+template<typename T, int currentSize, int newSize>
+constexpr auto resizeArray(const std::array<T, currentSize>& arr)
+{
+	return concatinate(arr, std::array<T, newSize - currentSize>());
+}
+
+template<typename T, int size>
+constexpr auto noOfInstancesOf(const T& x, const std::array<T, size>& arr)
+{
+	int noOfX = 0;
+	for (int i = 0; i < size; ++i)
+	{
+		if (x == arr[i])
+		{
+			++noOfX;
+		}
+	}
+	return noOfX;
+}
+template<typename T, int size, int newSize>
+constexpr auto removeInstancesOf(const T& x, const std::array<T, size>& arr)
+{
+
+	std::array<T, newSize> newArray = {};
+	int counter = 0;
+	for (int i = 0; i < size; ++i)
+	{
+		if (x != arr[i])
+		{
+			newArray[counter] = arr[i];
+			++counter;
+		}
+	}
+	return newArray;
+}
 
 //counts the number of unique ids in given array
 template<int N>
@@ -798,6 +834,77 @@ struct componentAccess<MAX_ET_ID>
 {
 	static constexpr std::array<Comp_ID, 0> value = { };
 };
+
+template<ET_ID id = BLANK_FOR_SPARSE, ET_ID maxID = MAX_ET_ID>
+struct noOfParentArray
+{
+	static constexpr std::array<int, maxID - id + 1> value = concatinate(ET<id>::noOfParents, noOfParentArray<(ET_ID)(id + 1)>::value);
+};
+
+template<ET_ID maxID>
+struct noOfParentArray<maxID,maxID>
+{
+	static constexpr std::array<int, 1>  value = {};
+};
+
+
+template<ET_ID id = BLANK_FOR_SPARSE, ET_ID maxID = MAX_ET_ID>
+struct parentArray
+{
+	static constexpr std::array<std::array<ET_ID,MAX_ET_ID>,maxID-id+1> value = concatinate(
+		resizeArray<ET_ID, ET<id>::noOfParents, MAX_ET_ID>(ET<id>::parents),
+		parentArray<(ET_ID)(id + 1), MAX_ET_ID>::value);
+};
+template<ET_ID maxID>
+struct parentArray<maxID, maxID>
+{
+	static constexpr auto value = std::array<std::array<ET_ID, MAX_ET_ID>,1>();
+};
+template<ET_ID id = BLANK_FOR_SPARSE, ET_ID maxID = MAX_ET_ID>
+struct inheritorArray
+{
+	static constexpr std::array<std::array<ET_ID, MAX_ET_ID>, maxID - id + 1> value = concatinate(
+		resizeArray<ET_ID, ET<id>::noOfInheritors, MAX_ET_ID>(ET<id>::inheritors),
+		inheritorArray<(ET_ID)(id + 1), MAX_ET_ID>::value);
+};
+template<ET_ID maxID>
+struct inheritorArray<maxID, maxID>
+{
+	static constexpr auto value = std::array<std::array<ET_ID, MAX_ET_ID>, 1>();
+};
+template<ET_ID id = BLANK_FOR_SPARSE, ET_ID maxID = MAX_ET_ID>
+struct compArray //might need to change amount that resizeArray changes too
+{
+	static constexpr std::array<std::array<Comp_ID, (int)Comp_ID::MAX_COMP_ID>, maxID - id + 1> value = concatinate(
+		resizeArray<Comp_ID, ET<id>::noOfComponents, (int)Comp_ID::MAX_COMP_ID>(ET<id>::components),
+		compArray<(ET_ID)(id + 1), MAX_ET_ID>::value);
+};
+template<ET_ID maxID>
+struct compArray<maxID, maxID>
+{
+	static constexpr auto value = std::array<std::array<Comp_ID, (int)Comp_ID::MAX_COMP_ID>, 1>();
+};
+
+constexpr auto getParents(ET_ID id)
+{
+	//remove blanks first probably.
+	return parentArray<>::value[id];
+}
+
+template<ET_ID id>
+constexpr auto getPareents(ET<id> entityType)
+{
+	//remove blanks first probably.
+	return removeInstancesOf<ET_ID, MAX_ET_ID, entityType.noOfParents>(BLANK_FOR_SPARSE, parentArray<>::value[id]);
+}
+constexpr auto getInheritors(ET_ID id)
+{
+	return inheritorArray<>::value[id];
+}
+constexpr auto getComponents(ET_ID id)
+{
+	return compArray<>::value[id];
+}
 
 
 #pragma endregion

@@ -14,6 +14,28 @@ Overall decisions
 -Get a clearer idea of what should be contained in mEntityFlags/mEntityGroup.
 -Multi-Threading
 
+Quick Redisign
+-----------------------EITHER PICK ONE OR GET ON WITH ENTITY MANAGER--------------------
+
+End Result:
+
+constexpr auto getParents(id)
+constexpr auto getComponents(id)
+constexpr auto getInheritors(id)
+
+NOTHING ELSE MATTERS. CHANGE ANYTHING TO GET HERE.
+
+All Sparse:
+
+ET<id> -> constexpr arr<ET,MAX_ET_ID>
+Class ET
+{
+Method 1
+	arr<bool,MAX_ET_ID> parents; // sparseish does ET.Parent[ET_ID] = true if id is a parent.
+Method 2
+	or arr<ET_ID, MAX_ET_ID> parents; // all parents at front of array first 0 hit is last parent. (easy to implement)
+}
+
 EM plan
 
 -???

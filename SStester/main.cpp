@@ -102,23 +102,21 @@ class Entity<PC> : Entity<CREATURE>
 };
 
 //want to make this a for loop to use an array to cycle through ET<id>.
+/*
+ Most likey use is ET<id>::someIDs -> for all SomeIds func(std::array<comp_id>)
+*/
 template<int N, const std::array<ET_ID,N>& arr, int index = 0>
 struct static_for
 {
-	static void loop(std::function< void(ET_ID)> func)
+	static void loop(std::function< void(Comp_ID)> func)
 	{
+		std::cout <<"\n"<< arr[index] << "\n";
 		//either need to write each loop here, or find a way to utilize 
-		for (int i = 0; i < ET<arr[index]>::noOfParents; ++i)
+		for (int i = 0; i < ET<arr[index]>::noOfComponents; ++i)
 		{
-			func(ET<arr[index]>::parents[i]);
-			//apply func to each parrents, then scroll through ETARR and do same to next in arr.
-			//can use constexpr bounded array for accessing components if function needs to do that.
-			//need loop for each parents
+			//apply func to each comp_id;
+			func(ET<arr[index]>::components[i]);
 		}
-		//or
-		static_for<ET<arr[index]>::noOfParents, ET<arr[index]>::parents>::loop(func);
-
-
 		//continue looping
 		static_for< N, arr, index + 1>::loop(func);
 	}
@@ -127,29 +125,42 @@ struct static_for
 template<int N, const std::array<ET_ID, N>& arr>
 struct static_for<N,arr,N>
 {
-	static void loop(std::function< void(ET_ID)> func){}
+	static void loop(std::function< void(Comp_ID)> func){}
 };
 
-void testery(ET_ID)
+//likely wont work with ET<xyz>;
+template <auto Start, auto End, auto Inc, class F>
+constexpr void constexpr_for(F&& f)
 {
+	if constexpr (Start < End)
+	{
+		f(std::integral_constant<decltype(Start), Start>());
+		constexpr_for<Start + Inc, End, Inc>(f);
+	}
+}
 
+template<ET_ID id>
+constexpr void testfunc(ET<id> entityType)
+{
+	for (auto& test : ET<id>::parents)
+	{
+	//	getParents(test);
+	}
 }
 int main()
 {
-	//maybe useful but doesn't seem to help with loops
-	constexpr ETs boo{};
-	boo.Arrow.parents;
-
-	std::function<void(ET_ID)> testerytest = testery;
-	static_for<ET<ARROW>::noOfParents, ET<ARROW>::parents>::loop(testerytest);
-
+	testfunc(ET<ARROW>());
+	//this is the way, can more functions be made like this?
+	constexpr auto tomfoolery = getPareents(ET<MAGIC_ARROW>());
+	constexpr auto domfoolery = getInheritors(PHYS_OBJ);
+	constexpr auto vomfoolery = getComponents(ARROW);
 	constexpr BoundsArray<Comp_ID, MAX_ET_ID+1,componentBounds<>::value[MAX_ET_ID]> tester(componentBounds<>::value, componentAccess<>::value);
 	componentBounds<>::value;
 	constexpr auto brackish = componentBounds<>::value; //need to shift so its {0,0,2...}
 	componentAccess<>::value;
 	SparseManager<Comp_ID::MASS> sparsey;
-	ET<ET_ID::TALKING_WOLF>::noOfParents; //need to remove duplicate from what its inheriting.
-	ET<ET_ID::TALKING_WOLF>::parents; //need to remove duplicate from what its inheriting.
+	ET<ET_ID::TALKING_WOLF>::noOfParents; 
+	ET<ET_ID::TALKING_WOLF>::parents;
 	ET<ET_ID::MAGIC_ARROW>::parents;
 
 	ET<ET_ID::OBJ>::noOfDirectInheritors;
@@ -170,6 +181,8 @@ int main()
 	ET<MAX_ET_ID>::noOfComponents;
 	ET<ET_ID::MAGIC_ARROW>::components;
 	ET<ET_ID::OBJ>::components;
+	ET<ET_ID::PHYS_OBJ>::components;
+
 	ET<ET_ID::PROJECTILE>::components;
 	ET<ET_ID::MAGIC>::components;
 	ComponentArray<Comp_ID::PERMA_FORCE>::value;

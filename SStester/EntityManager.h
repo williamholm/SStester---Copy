@@ -25,6 +25,18 @@ ETs with no overlapping components).
 
 
 */
+
+/*
+Test functions:
+Basic:
+createEntity(id,DataPack<id>)
+moveAllInheritors(id,X) {for all ET<id>inheritors, pos + X}
+deleteAll(id) {deletes all of type id}
+Med:
+createBatch(id,amount,std::vector<DataPack<id>> data){creates amount of entities}
+Advanced:
+delete/creating shared components.
+*/
 class EntityManager
 {
 
