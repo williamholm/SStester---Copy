@@ -32,11 +32,11 @@ Improve Value sort -- work on typeSort2 -- Look into merge sorting. Quick sort i
 
 
 
-template<Comp_ID mID, class DataType = Comp<mID>::type>
+template<Comp_ID mID, typename DataType = typename Comp<mID>::type>
 class TwoSortsSparse
 {
 	//not entirely sure why DataType needs to be specified here, but functionality is unchanged
-	using component = Comp<mID,DataType>;
+	using component = Comp<mID>;
 
 public: //switch to private after testing
 	std::vector<DataType> mCDS;		//component dense set
@@ -282,6 +282,11 @@ public:
 	{
 		mCDS.emplace_back(DataType());
 		mEDS.push_back(Entity32Bit());
+		mBounds.resize(component::noOfETsWithComp + 2);
+		mSparse.resize(maxEntityNumber);//should change this to be smarter to save space.
+
+		for (auto& bound : mBounds) { ++bound; };
+
 	}
 
 	~TwoSortsSparse() = default;

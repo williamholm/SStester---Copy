@@ -33,16 +33,37 @@ createEntity(id,DataPack<id>)
 moveAllInheritors(id,X) {for all ET<id>inheritors, pos + X}
 deleteAll(id) {deletes all of type id}
 Med:
+2^n entity nums to save memory for small components.
 createBatch(id,amount,std::vector<DataPack<id>> data){creates amount of entities}
 Advanced:
 delete/creating shared components.
 */
+
+
+//helper function to create tuple of sparses.
+template<int... ints>
+auto testfun(std::integer_sequence<int, 0 ,ints...> seq)
+{
+	return std::move(std::tuple<TwoSortsSparse<(Comp_ID)ints>...>());
+}
+
+template<Comp_ID... components>
 class EntityManager
 {
-
+	std::tuple<TwoSortsSparse<components>...> mSparseSets;
+public:
+	//is there a better way to do this?
+	inline static auto mSparses = testfun(std::make_integer_sequence<int, MAX_COMP_ID>());
+	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
+	ReturnType getComponentData(int entityNum)
+	{
+		return std::get<(int)component>(mSparses)(entityNum);
+	}
 	EntityManager() {};
 	~EntityManager() {};
 };
+
+
 template<Comp_ID id, class ComponentType = CompInfo<id>::type>
 class SparseManager
 {

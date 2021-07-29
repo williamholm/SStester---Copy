@@ -69,10 +69,11 @@ class Entity
 	~Entity() {}
 };
 template<>
-class Entity<OBJ> 
+class Entity<OBJ>
 {
 	Entity32Bit entityNum;
 	static constexpr auto bl = ETInfo<ET_ID::OBJ>::newComponents;
+
 	Entity() {}
 	~Entity() {}
 };
@@ -101,93 +102,73 @@ class Entity<PC> : Entity<CREATURE>
 	Entity<ARROW> arrow;
 };
 
-//want to make this a for loop to use an array to cycle through ET<id>.
-/*
- Most likey use is ET<id>::someIDs -> for all SomeIds func(std::array<comp_id>)
-*/
-template<int N, const std::array<ET_ID,N>& arr, int index = 0>
-struct static_for
-{
-	static void loop(std::function< void(Comp_ID)> func)
-	{
-		std::cout <<"\n"<< arr[index] << "\n";
-		//either need to write each loop here, or find a way to utilize 
-		for (int i = 0; i < ET<arr[index]>::noOfComponents; ++i)
-		{
-			//apply func to each comp_id;
-			func(ET<arr[index]>::components[i]);
-		}
-		//continue looping
-		static_for< N, arr, index + 1>::loop(func);
-	}
-};
-//termination specialization
-template<int N, const std::array<ET_ID, N>& arr>
-struct static_for<N,arr,N>
-{
-	static void loop(std::function< void(Comp_ID)> func){}
-};
 
-//likely wont work with ET<xyz>;
-template <auto Start, auto End, auto Inc, class F>
-constexpr void constexpr_for(F&& f)
-{
-	if constexpr (Start < End)
-	{
-		f(std::integral_constant<decltype(Start), Start>());
-		constexpr_for<Start + Inc, End, Inc>(f);
-	}
-}
-
+//this technique might be useful, but its still non-static accces for the most part.
 template<ET_ID id>
 constexpr void testfunc(ET<id> entityType)
 {
 	for (auto& test : ET<id>::parents)
 	{
-	//	getParents(test);
+		//	getParents(test);
 	}
 }
+
+template<Comp_ID... components>
+class test
+{
+private:
+public:
+	std::tuple<TwoSortsSparse<components>...> tsss;
+	test() {}
+	~test() = default;
+};
+
+template<typename... components>
+class test2
+{
+public:
+	std::tuple<components...> components;
+	test2() {}
+	~test2() = default;
+};
+template<int... ints>
+constexpr int... sume(std::integer_sequence<int, ints...> seq)
+{
+	return (2,2);
+}
+
+
 int main()
 {
-	testfunc(ET<ARROW>());
-	//this is the way, can more functions be made like this?
-	constexpr auto tomfoolery = getPareents(ET<MAGIC_ARROW>());
+	constexpr auto sequence = std::make_index_sequence<3>();
+	constexpr auto seq = std::make_integer_sequence<int, MAX_COMP_ID>();
+	constexpr auto blemish = sume<>(seq);
+	EntityManager<(Comp_ID...)blemish> berd;
+	std::tuple<TwoSortsSparse<MASS>, TwoSortsSparse<STATE>> testuple;
+	std::get<1>(testuple).addComponent(Entity32Bit(1,OBJ),4.5f);
+	std::cout << "\n\n testuple: " << std::get<1>(testuple).mCDS[1];
+
+	EntityManager<MASS, VELOCITY> tes;
+	tes.getComponentData<(Comp_ID)0>(0);
+	auto reamed = tes.mSparses;
+
+	constexpr auto tomfoolery = getParents(MAGIC_ARROW);
 	constexpr auto domfoolery = getInheritors(PHYS_OBJ);
 	constexpr auto vomfoolery = getComponents(ARROW);
+	constexpr auto removed = resizeArray(tomfoolery, std::array<ET_ID,noOfParentArray<>::value[MAGIC_ARROW]>());
+	int i = 4;
+	i++;
+	getComponents((ET_ID)i);
+
 	constexpr BoundsArray<Comp_ID, MAX_ET_ID+1,componentBounds<>::value[MAX_ET_ID]> tester(componentBounds<>::value, componentAccess<>::value);
-	componentBounds<>::value;
-	constexpr auto brackish = componentBounds<>::value; //need to shift so its {0,0,2...}
-	componentAccess<>::value;
+	for (int i = tester.mBounds[ARROW]; i < tester.mBounds[ARROW + 1]; ++i)
+	{
+		std::cout<<"\nDATA " <<(int)tester.mData[i];
+	}
 	SparseManager<Comp_ID::MASS> sparsey;
-	ET<ET_ID::TALKING_WOLF>::noOfParents; 
-	ET<ET_ID::TALKING_WOLF>::parents;
-	ET<ET_ID::MAGIC_ARROW>::parents;
 
-	ET<ET_ID::OBJ>::noOfDirectInheritors;
-	ET<ET_ID::OBJ>::directInheritors;
-	ET<ET_ID::OBJ>::noOfInheritors;
-	ET<ET_ID::OBJ>::inheritors;
-
-	ET<ET_ID::PHYS_OBJ>::noOfInheritors;
-	ET<ET_ID::PHYS_OBJ>::directInheritors;
-	ET<ET_ID::PHYS_OBJ>::inheritors;
-	ET<ET_ID::MAGIC_ARROW>::noOfComponents;
-	constexpr auto t3 = componentBounds<>::value[MAGIC_ARROW+1]-componentBounds<>::value[MAGIC_ARROW];
-	ET<ET_ID::OBJ>::noOfComponents;
-	constexpr auto t2 = componentBounds<>::value[OBJ+1] - componentBounds<>::value[OBJ];
-	ET<ET_ID::PROJECTILE>::noOfComponents;
-	constexpr auto t1 = componentBounds<>::value[PROJECTILE];
-	ET<ET_ID::MAGIC>::noOfComponents;
-	ET<MAX_ET_ID>::noOfComponents;
-	ET<ET_ID::MAGIC_ARROW>::components;
-	ET<ET_ID::OBJ>::components;
-	ET<ET_ID::PHYS_OBJ>::components;
-
-	ET<ET_ID::PROJECTILE>::components;
-	ET<ET_ID::MAGIC>::components;
-	ComponentArray<Comp_ID::PERMA_FORCE>::value;
-	Comp<Comp_ID::POS3D>::sparse;
-
+	ET<ARROW>::noOfComponents;
+	ET<ARROW>::components;
 
 	TwoSortsSparse<Comp_ID::POS3D> bo(100000);
 

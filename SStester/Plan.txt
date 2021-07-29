@@ -5,36 +5,10 @@ make sure no doubling of inheritance occurs.
 figure out how to get data access the data in ET<id>. atm for loops and functions don't work so you are stuck with using structs - try EM search functions to
 see if this problem is unsolvable. if it is move PET into new solution and have it compile data into a constexpr, non-static access only way.
 
-method 1: concatinate all size of arrays, and all arrays, then use sizes as bounds and cycle through them in for loops. DONE for components
-method 1 improvement finish test class - this is likely an alright way to store data in the event switching to 2 solutions is required.
-Overall decisions
-
 -Should ETs contain other ETs? or should that be kept there too.
 -How should ETInfos be made / stored. current method is kinda horrible - Engine editor?.
 -Get a clearer idea of what should be contained in mEntityFlags/mEntityGroup.
 -Multi-Threading
-
-Quick Redisign
------------------------EITHER PICK ONE OR GET ON WITH ENTITY MANAGER--------------------
-
-End Result:
-
-constexpr auto getParents(id)
-constexpr auto getComponents(id)
-constexpr auto getInheritors(id)
-
-NOTHING ELSE MATTERS. CHANGE ANYTHING TO GET HERE.
-
-All Sparse:
-
-ET<id> -> constexpr arr<ET,MAX_ET_ID>
-Class ET
-{
-Method 1
-	arr<bool,MAX_ET_ID> parents; // sparseish does ET.Parent[ET_ID] = true if id is a parent.
-Method 2
-	or arr<ET_ID, MAX_ET_ID> parents; // all parents at front of array first 0 hit is last parent. (easy to implement)
-}
 
 EM plan
 
@@ -42,23 +16,19 @@ EM plan
 
 ET plan
 
+-Set up test classes for ET. DONE
+
+-Decide on better inheritance as at the moment it can easily break if you inherit from two parents which share a common parent. (need to updated
+ET components though as that is still old) DONE
+
+-Add Children. DONE
+
 -Should ETs have multiple names or should this be done elsewhere eg should gaurd = bandit should there ETs for both to search. currently yes
 is there negative to large amount of groups? is there a better way than just doing the obvious?
-
--Decide on Volitile/Const/Stable attributes for an ET for 2SS opt - need to change from sparse to hash esq system for storing ET in compArray.
-HACKY SOLUTION IN PLACE SEE ET_ID ENUM - MIGHT MAKE INHERITANCE ORDERING MORE AWKWARD
-
--Set up test classes for ET. DONE, can always be done more though
 
 -Decide on more than one of each component per ET. - 2ss doesn't work well as there is no obv way (other than flags) to indicate if things 
 are sorted by value. If stuff isn't sorted by value, then 2SS works for this. 
 
--Decide on better inheritance as at the moment it can easily break if you inherit from two parents which share a common parent. DONE (needed to updated
-ET components though as that is still old)
-
--Ordering of Components - not sure if it matters.
-
--Add Children. DONE
 
 Comp plan
 

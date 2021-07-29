@@ -63,7 +63,6 @@ public:
 	vec3() = default;
 };
 
-
 enum ET_ID
 {
 	//UTILITY
@@ -89,7 +88,7 @@ enum ET_ID
 	MAX_ET_ID
 };
 
-enum class Comp_ID
+enum Comp_ID
 {
 	BLANK,
 	STATE,
@@ -182,7 +181,17 @@ constexpr auto resizeArray(const std::array<T, currentSize>& arr)
 {
 	return concatinate(arr, std::array<T, newSize - currentSize>());
 }
-
+//different method for constexpr resize
+template<typename T, int currentSize, int newSize>
+constexpr std::array<T, newSize> resizeArray(const std::array<T, currentSize>& arr, const std::array<T, newSize>&)
+{
+	std::array<T, newSize> temp = {};
+	for (int i = 0; i < newSize; ++i)
+	{
+		temp[i] = arr[i];
+	}
+	return temp;
+}
 template<typename T, int size>
 constexpr auto noOfInstancesOf(const T& x, const std::array<T, size>& arr)
 {
@@ -760,7 +769,6 @@ struct GNC
 };
 #pragma endregion
 
-
 //All usefull info of ET, derived from ETInfo. Cant just do ETInfo as functions such as getComponents don't work if put before ETinfo.
 //Make this a set of constexpr functions? 
 template<ET_ID id>
@@ -807,6 +815,7 @@ public:
 	~BoundsArray() = default;
 	
 };
+
 template<int currentBounds = 0, int index = 0>
 struct componentBounds
 {
@@ -814,21 +823,17 @@ struct componentBounds
 		componentBounds<ET<(ET_ID)(index)>::noOfComponents + currentBounds,index+1>::value
 		);
 };
-
 template<int currentBounds>
 struct componentBounds<currentBounds,MAX_ET_ID>
 {
 	static constexpr std::array<int, 1> value = { currentBounds };
 };
 
-
-
 template<int index = 0>
 struct componentAccess
 {
 	static constexpr auto value = concatinate(ET<(ET_ID)index>::components, componentAccess<index + 1>::value);
 };
-
 template<>
 struct componentAccess<MAX_ET_ID>
 {
@@ -840,13 +845,11 @@ struct noOfParentArray
 {
 	static constexpr std::array<int, maxID - id + 1> value = concatinate(ET<id>::noOfParents, noOfParentArray<(ET_ID)(id + 1)>::value);
 };
-
 template<ET_ID maxID>
 struct noOfParentArray<maxID,maxID>
 {
 	static constexpr std::array<int, 1>  value = {};
 };
-
 
 template<ET_ID id = BLANK_FOR_SPARSE, ET_ID maxID = MAX_ET_ID>
 struct parentArray
@@ -890,13 +893,6 @@ constexpr auto getParents(ET_ID id)
 	//remove blanks first probably.
 	return parentArray<>::value[id];
 }
-
-template<ET_ID id>
-constexpr auto getPareents(ET<id> entityType)
-{
-	//remove blanks first probably.
-	return removeInstancesOf<ET_ID, MAX_ET_ID, entityType.noOfParents>(BLANK_FOR_SPARSE, parentArray<>::value[id]);
-}
 constexpr auto getInheritors(ET_ID id)
 {
 	return inheritorArray<>::value[id];
@@ -905,8 +901,6 @@ constexpr auto getComponents(ET_ID id)
 {
 	return compArray<>::value[id];
 }
-
-
 #pragma endregion
 
 
@@ -955,7 +949,7 @@ constexpr std::array<int, ET_ID::MAX_ET_ID+1> getCompSparse()
 	sparse[ET_ID::MAX_ET_ID] = counter;
 	return sparse;
 }
-template<Comp_ID id, class ComponentType = CompInfo<id>::type>
+template<Comp_ID id, typename ComponentType = typename CompInfo<id>::type>
 struct Comp
 {
 	//these 3 moved here from CompInfo for ease of access despite duplication.
