@@ -1,18 +1,29 @@
 Short term tasks:
 
-make sure no doubling of inheritance occurs.
+make sure no doubling of inheritance occurs. DONE
 
-figure out how to get data access the data in ET<id>. atm for loops and functions don't work so you are stuck with using structs - try EM search functions to
-see if this problem is unsolvable. if it is move PET into new solution and have it compile data into a constexpr, non-static access only way.
+How to create/delete entities; 
+should be able to copy existing entity of the same type (maybe more advanced is partial copy, but that can be done manually)
+should be able to easily pass that needed data to create - ideally without needing to manually make datapacks.
 
 -Should ETs contain other ETs? or should that be kept there too.
 -How should ETInfos be made / stored. current method is kinda horrible - Engine editor?.
 -Get a clearer idea of what should be contained in mEntityFlags/mEntityGroup.
 -Multi-Threading
+-SIMD
+
+Large Questions:
+
+should pos3D be split into x,y,z component, same with things like orientation?
+
+does sorting the way 2SS does it even make sense most of the time? switching every cycle is pretty bad, is there a way to access 
+order in a sorted way rather than doing it like this?
 
 EM plan
 
--???
+-Rules for creation/deletion
+
+-How to deal with getting data from multiple queries. Might need changes in 2SS.
 
 ET plan
 
@@ -26,15 +37,10 @@ ET components though as that is still old) DONE
 -Should ETs have multiple names or should this be done elsewhere eg should gaurd = bandit should there ETs for both to search. currently yes
 is there negative to large amount of groups? is there a better way than just doing the obvious?
 
--Decide on more than one of each component per ET. - 2ss doesn't work well as there is no obv way (other than flags) to indicate if things 
-are sorted by value. If stuff isn't sorted by value, then 2SS works for this. 
-
-
 Comp plan
 
 -get SS for each component which lists all ETs with that component in it. DONE
 -Decide on multiple components in an ET - Should be an option, for now unique to components that are not sortable.
-
 
 2SS
 

@@ -149,6 +149,7 @@
     <ClInclude Include="Object.h" />
     <ClInclude Include="PerfectET.hpp" />
     <ClInclude Include="SparseSet.h" />
+    <ClInclude Include="TestSystem.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EntityManager.cpp" />

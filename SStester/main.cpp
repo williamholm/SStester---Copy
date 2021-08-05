@@ -5,6 +5,7 @@
 #include "2SortsSparse.hpp"
 #include "PerfectET.hpp"
 #include <cstdint>
+#include "TestSystem.hpp"
 /*
 Ordered Sparse Requirements:
 
@@ -36,30 +37,6 @@ Sorting:
 game dev rules:
 try and store states outside of gameloop.
 */
-/*
-Flaws
-
-cannot do something like for loops as non static cannot be used as template args
-
-can't
-void foo(ET_ID id){ ET<id>::components}
-can
-template<ET_ID id>
-void boo() {ET<id>::components}.
-
-1)Live with it
-2)Just make the editor
-
-*/
-/*
-* METHOD 2 Basic Functions
-*/
-
-union ETs
-{
-	ET<ARROW> Arrow;
-	ET<MAGIC_ARROW> MagicArrow;
-};
 
 template<ET_ID id>
 class Entity
@@ -69,12 +46,13 @@ class Entity
 	~Entity() {}
 };
 template<>
-class Entity<OBJ>
+class Entity<OBJ> : public Entity32Bit
 {
-	Entity32Bit entityNum;
-	static constexpr auto bl = ETInfo<ET_ID::OBJ>::newComponents;
-
-	Entity() {}
+public:
+	Entity(EntityManager* EM)
+	{
+		ET<OBJ>::components;
+	}
 	~Entity() {}
 };
 template<>
@@ -103,62 +81,34 @@ class Entity<PC> : Entity<CREATURE>
 };
 
 
-//this technique might be useful, but its still non-static accces for the most part.
 template<ET_ID id>
-constexpr void testfunc(ET<id> entityType)
+struct ETData
 {
-	for (auto& test : ET<id>::parents)
-	{
-		//	getParents(test);
-	}
-}
-
-template<Comp_ID... components>
-class test
-{
-private:
-public:
-	std::tuple<TwoSortsSparse<components>...> tsss;
-	test() {}
-	~test() = default;
+	ET<id>::components;
+	
 };
 
-template<typename... components>
-class test2
+template<ET_ID id, int... comp_ids>
+struct fake
 {
-public:
-	std::tuple<components...> components;
-	test2() {}
-	~test2() = default;
+	std::tuple<Comp<(Comp_ID)comp_ids>...> data;
+	std::tuple<Comp<(Comp_ID)comp_ids>...> g;
 };
-template<int... ints>
-constexpr int... sume(std::integer_sequence<int, ints...> seq)
-{
-	return (2,2);
-}
 
 
 int main()
 {
-	constexpr auto sequence = std::make_index_sequence<3>();
-	constexpr auto seq = std::make_integer_sequence<int, MAX_COMP_ID>();
-	constexpr auto blemish = sume<>(seq);
-	EntityManager<(Comp_ID...)blemish> berd;
+
 	std::tuple<TwoSortsSparse<MASS>, TwoSortsSparse<STATE>> testuple;
 	std::get<1>(testuple).addComponent(Entity32Bit(1,OBJ),4.5f);
 	std::cout << "\n\n testuple: " << std::get<1>(testuple).mCDS[1];
 
-	EntityManager<MASS, VELOCITY> tes;
-	tes.getComponentData<(Comp_ID)0>(0);
+	EntityManager tes;
+	testSystem(&tes);
 	auto reamed = tes.mSparses;
-
 	constexpr auto tomfoolery = getParents(MAGIC_ARROW);
 	constexpr auto domfoolery = getInheritors(PHYS_OBJ);
 	constexpr auto vomfoolery = getComponents(ARROW);
-	constexpr auto removed = resizeArray(tomfoolery, std::array<ET_ID,noOfParentArray<>::value[MAGIC_ARROW]>());
-	int i = 4;
-	i++;
-	getComponents((ET_ID)i);
 
 	constexpr BoundsArray<Comp_ID, MAX_ET_ID+1,componentBounds<>::value[MAX_ET_ID]> tester(componentBounds<>::value, componentAccess<>::value);
 	for (int i = tester.mBounds[ARROW]; i < tester.mBounds[ARROW + 1]; ++i)
@@ -171,7 +121,6 @@ int main()
 	ET<ARROW>::components;
 
 	TwoSortsSparse<Comp_ID::POS3D> bo(100000);
-
 	std::vector<vec3> testVec;
 
 	Testing::Timer timer;

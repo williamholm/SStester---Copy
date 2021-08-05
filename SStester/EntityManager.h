@@ -41,37 +41,72 @@ delete/creating shared components.
 
 
 //helper function to create tuple of sparses.
+//0 to remove TSS<0> from tuple as Comp_ID 0 is a blank id.
 template<int... ints>
-auto testfun(std::integer_sequence<int, 0 ,ints...> seq)
+constexpr auto testfun(std::integer_sequence<int, 0, ints...> seq)
 {
-	return std::move(std::tuple<TwoSortsSparse<(Comp_ID)ints>...>());
+	//there is an int so std::get<Comp_ID> is correctly allinged as ints is has values 1-MAX_COMP_ID
+	return std::move(std::tuple<int, TwoSortsSparse<(Comp_ID)ints>...>());
 }
 
-template<Comp_ID... components>
+
+/*
+* Consider these basic examples:
+* 
+* move all projectiles within 30 units of player 10 units back. 
+* 
+* step 1) get player position
+* step 2) read projectile positions
+* step 3) compare positions
+* step 4) update positions
+* 
+* for all NPCs create a wolf at their location
+* 
+*/
 class EntityManager
 {
-	std::tuple<TwoSortsSparse<components>...> mSparseSets;
 public:
 	//is there a better way to do this?
 	inline static auto mSparses = testfun(std::make_integer_sequence<int, MAX_COMP_ID>());
-	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
-	ReturnType getComponentData(int entityNum)
+
+	template<Comp_ID component> //what are the ramifications of access like this? seems bad for Multi Threading
+	inline TwoSortsSparse<component>& sparse()
 	{
-		return std::get<(int)component>(mSparses)(entityNum);
+		return std::get<component>(mSparses);
 	}
+	//should mark entity for deletion. then delete as soon as no ET data being used (multi threading)
+	//Or should mark entity for deletion - have system to detect it has been marked and can't be used,
+	//then delete at end of cycle for efficieny.
+	void deleteEntity(Entity32Bit entity) {}
+
+	
+	//does it make more sense for this and other singular functions to be in classes instead of here?
+	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
+	inline ReturnType& getComponentData(Entity32Bit entity) { return std::get<component>(mSparses)(entity);	}
+	//returns data given index of CDS.
+	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
+	inline ReturnType& getComponentData(int index) { return std::get<component>(mSparses)[index]; }
+	//returns Entity in EDS at a given index
+	template<Comp_ID component>
+	inline Entity32Bit getEntity(int index) { return std::get<component>(mSparses).getEntity(index); }
+	//return the starting index of ET in sparse<compononent>
+	template<Comp_ID component>
+	inline uint32_t getETBegining(ET_ID entityType) { return std::get<component>(mSparses).groupBegin(entityType); }
+	//return the end + 1 index of ET in sparse<compononent>
+	template<Comp_ID component>
+	inline uint32_t getETend(ET_ID entityType) { return std::get<component>(mSparses).groupEnd(entityType);}
+
+	template<Comp_ID component, typename ComponentType = typename Comp<component>::type>
+	inline ComponentType& operator()(Entity32Bit entity) { return std::get<component>(mSparses)(entity); }
 	EntityManager() {};
 	~EntityManager() {};
 };
 
 
-template<Comp_ID id, class ComponentType = CompInfo<id>::type>
+template<Comp_ID id, typename ComponentType = typename CompInfo<id>::type>
 class SparseManager
 {
 private:
-	//this should almost always point to same vector - should be moved to EM? why is this needed?
-	std::array<uint32_t, maxEntityNumber>* pAvailableEntityNums;
-	//This is general - if you want to overload an entity num this won't help
-	uint32_t* pNextAvailableEntityNum;
 	TwoSortsSparse<id, ComponentType> mSparseSet;
 public:
 

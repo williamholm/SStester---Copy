@@ -253,16 +253,19 @@ private:
 	}
 
 public:
-	inline uint32_t groupBegin(ET_ID id) { return mBounds[component::sparse[id]]; }
-	inline uint32_t groupEnd(ET_ID id) { return mBounds[component::sparse[id] + 1]; }
-
+	inline uint32_t groupBegin(const ET_ID id) { return mBounds[component::sparse[id]]; }
+	inline uint32_t groupEnd(const ET_ID id) { return mBounds[component::sparse[id] + 1]; }
+	//returns entity at a given index of dense sets.
+	inline Entity32Bit getEntity(const uint32_t index) { return mEDS[index]; }
+	//returns indexs of CDS and EDS so that they can be accessed without going back into SparseSet
+	inline uint32_t getIndex(const Entity32Bit entity) { return mSparse[entity.number()]; }
 	//get component via entity number
-	inline DataType& operator[] (const Entity32Bit entity) noexcept
+	inline DataType& operator() (const Entity32Bit entity) noexcept
 	{
 		return mCDS[mSparse[entity.number()]];
 	}
 	//get component via index --- Mainly for testing purposes might remove later
-	inline DataType& operator() (const int index) noexcept
+	inline DataType& operator[] (const int index) noexcept
 	{
 		return mCDS[index];
 	}
@@ -271,7 +274,7 @@ public:
 	{
 		mCDS.emplace_back(DataType());
 		mEDS.push_back(Entity32Bit());
-		mBounds.resize(component::noOfETsWithComp + 2); //+1 as first is empty value for sparse set
+		mBounds.resize(component::noOfETsWithComp + 2); //+2 as first is empty value for sparse set
 		mSparse.resize(maxEntity);
 
 		//increment by one to account for 0 being reserved by SS
