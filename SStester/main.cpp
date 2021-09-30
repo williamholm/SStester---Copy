@@ -81,23 +81,72 @@ class Entity<PC> : Entity<CREATURE>
 };
 
 
-template<ET_ID id>
+
+//trick to get type for ids, for some reason you can't use Comp<id>::type in Data.
+template<Comp_ID id, typename ReturnType = typename Comp<id>::type>
+ReturnType faker()
+{
+	return ReturnType();
+}
+
+template<int N>
+constexpr std::array<int, MAX_COMP_ID> CompSparse(const std::array<Comp_ID, N>& arr)
+{
+	std::array<int, MAX_COMP_ID> sparse = {};
+
+	for (int i = 0; i < MAX_COMP_ID; ++i)
+	{
+		sparse[i] = MAX_COMP_ID; //do this so 0's aren't default state of sparse. not needed for current function.
+	}
+	for (int i = 0; i < N; ++i)
+	{
+		sparse[arr[i]] = i;
+	}
+
+	return sparse;
+}
+
+template<ET_ID id, int... seq>
 struct ETData
 {
-	ET<id>::components;
-	
+	static constexpr std::array<int, MAX_COMP_ID> sparse = CompSparse(ET<id>::components); //move to ET<id>.
+
+	std::tuple<decltype(faker<ET<id>::components[seq]>())...> data;
+	//std::tuple<Comp<ET<id>::components[seq]>...> rata; //why can't ::type work here? can get around by adding default component to Comp,
+													     //and rely on almighty decltype.
+
+	template<Comp_ID id, typename ComponentType = typename Comp<id>::type>
+	inline constexpr void writeData(const ComponentType& Data)
+	{
+		std::get<sparse[id]>(data) = Data;
+	}
+
+	template<Comp_ID id, typename ComponentType = typename Comp<id>::type>
+	inline constexpr ComponentType&& moveData()
+	{
+		return std::move(std::get<sparse[id]>(data));
+	}
 };
 
-template<ET_ID id, int... comp_ids>
-struct fake
+template<int... ints>
+constexpr auto ETDataWrapper(std::integer_sequence<int, ints...> galling)
 {
-	std::tuple<Comp<(Comp_ID)comp_ids>...> data;
-	std::tuple<Comp<(Comp_ID)comp_ids>...> g;
-};
-
+	return ETData<ARROW, ints...>();
+}
 
 int main()
 {
+	typedef float Mass; //any value in this for clarity?
+	constexpr auto sequ = std::make_integer_sequence<int,4>();
+	auto newland = ETDataWrapper(sequ);
+	typedef decltype(newland) ArrowData;
+	newland.data;
+	ArrowData test;
+	test.data;
+	test.writeData<VELOCITY>(4);
+	auto moved = test.moveData<VELOCITY>();
+	std::cout << "fghfgh" << std::get<0>(test.data);
+
 
 	std::tuple<TwoSortsSparse<MASS>, TwoSortsSparse<STATE>> testuple;
 	std::get<1>(testuple).addComponent(Entity32Bit(1,OBJ),4.5f);
