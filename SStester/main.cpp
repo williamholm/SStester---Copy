@@ -38,53 +38,12 @@ game dev rules:
 try and store states outside of gameloop.
 */
 
-template<ET_ID id>
-class Entity
-{
-
-	Entity() {}
-	~Entity() {}
-};
-template<>
-class Entity<OBJ> : public Entity32Bit
-{
-public:
-	Entity(EntityManager* EM)
-	{
-		ET<OBJ>::components;
-	}
-	~Entity() {}
-};
-template<>
-class Entity<PHYS_OBJ> : Entity<OBJ>
-{
-
-};
-template<>
-class Entity<ARROW> : Entity<PHYS_OBJ>
-{
-
-};
-template<>
-class Entity<CREATURE> : Entity<PHYS_OBJ>
-{
-
-};
-template<>
-class Entity<PC> : Entity<CREATURE>
-{
-	//inherits creation via data packets
-	void writeComponent();//is this better than doing shit as function with manager / system combo?
-	void readComponent();
-	//other entitys
-	Entity<ARROW> arrow;
-};
+//problems 1: get a tuple of component types for each ET<id>
 
 
-
-//trick to get type for ids, for some reason you can't use Comp<id>::type in Data.
+//trick to get type for ids, for some reason you can't use Comp<id>::type in Data. Might be better way.
 template<Comp_ID id, typename ReturnType = typename Comp<id>::type>
-ReturnType faker()
+constexpr ReturnType faker()
 {
 	return ReturnType();
 }
@@ -106,15 +65,21 @@ constexpr std::array<int, MAX_COMP_ID> CompSparse(const std::array<Comp_ID, N>& 
 	return sparse;
 }
 
+template<Comp_ID id, typename CompType = typename Comp<id>::type>
+struct CompData
+{
+	using type = CompType;
+	CompType data;
+};
+
 template<ET_ID id, int... seq>
 struct ETData
 {
 	static constexpr std::array<int, MAX_COMP_ID> sparse = CompSparse(ET<id>::components); //move to ET<id>.
 
 	std::tuple<decltype(faker<ET<id>::components[seq]>())...> data;
-	//std::tuple<Comp<ET<id>::components[seq]>...> rata; //why can't ::type work here? can get around by adding default component to Comp,
-													     //and rely on almighty decltype.
-
+	std::tuple<CompData<ET<id>::components[seq]>...> rata;
+	CompData<MASS>::type borin;
 	template<Comp_ID id, typename ComponentType = typename Comp<id>::type>
 	inline constexpr void writeData(const ComponentType& Data)
 	{
@@ -134,8 +99,43 @@ constexpr auto ETDataWrapper(std::integer_sequence<int, ints...> galling)
 	return ETData<ARROW, ints...>();
 }
 
+
+//move this to ET<id>, or use to replace ETData?
+template<ET_ID id, int compIndex = 0, int lastComp = ET<id>::noOfComponents - 1> //-1 for easiers specialization
+struct idata
+{
+	using CompType = decltype(faker<ET<id>::components[compIndex]>());
+	static constexpr auto data = std::tuple_cat(std::make_tuple(CompType()), idata<id, compIndex + 1, lastComp>::data);
+};
+
+template<ET_ID id, int compIndex>
+struct idata<id, compIndex, compIndex>
+{
+	static constexpr std::tuple<decltype(faker<ET<id>::components[compIndex]>())> data = {};
+};
+
+template<ET_ID id>
+class Entity : public Entity32Bit
+{
+public:
+	//add entity to batch creator in EM - should this include data now to be tansfered later? is there a way to do otherwise?
+	Entity(EntityManager* EM)
+	{
+		std::cout << "\nhere" << ET<id>::components[1] << "\n\n\n";
+	}
+	//make single entity instantly
+	Entity(EntityManager* EM, decltype(idata<id>::data) data)
+	{
+
+	}
+	~Entity() {}
+};
+
 int main()
 {
+	idata<ARROW> dita;
+	auto blata = dita.data;
+
 	typedef float Mass; //any value in this for clarity?
 	constexpr auto sequ = std::make_integer_sequence<int,4>();
 	auto newland = ETDataWrapper(sequ);
@@ -154,20 +154,13 @@ int main()
 
 	EntityManager tes;
 	testSystem(&tes);
-	auto reamed = tes.mSparses;
+	Entity<ARROW> entityCreationTester(&tes);
+
+
 	constexpr auto tomfoolery = getParents(MAGIC_ARROW);
 	constexpr auto domfoolery = getInheritors(PHYS_OBJ);
 	constexpr auto vomfoolery = getComponents(ARROW);
 
-	constexpr BoundsArray<Comp_ID, MAX_ET_ID+1,componentBounds<>::value[MAX_ET_ID]> tester(componentBounds<>::value, componentAccess<>::value);
-	for (int i = tester.mBounds[ARROW]; i < tester.mBounds[ARROW + 1]; ++i)
-	{
-		std::cout<<"\nDATA " <<(int)tester.mData[i];
-	}
-	SparseManager<Comp_ID::MASS> sparsey;
-
-	ET<ARROW>::noOfComponents;
-	ET<ARROW>::components;
 
 	TwoSortsSparse<Comp_ID::POS3D> bo(100000);
 	std::vector<vec3> testVec;

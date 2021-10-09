@@ -263,6 +263,7 @@ constexpr auto uniqueET_IDs(const std::array<ET_ID,N>& arr)
 
 
 //Information user inputs for new Components(try move to new folder)
+//ComponentType must be default initializable for ETData.
 #pragma region Compinfo
 
 template<Comp_ID id>
@@ -772,7 +773,7 @@ struct GNC
 //All usefull info of ET, derived from ETInfo. Cant just do ETInfo as functions such as getComponents don't work if put before ETinfo.
 //Make this a set of constexpr functions? 
 template<ET_ID id>
-struct ET
+struct ET 
 {
 	//what ET<id> inherits from
 	static constexpr int inheritsFromSize = ETInfo<id>::inheritsFromSize;
