@@ -1,11 +1,13 @@
 #pragma once
 #include <iostream>
+#include <cstdint>
+#include <type_traits>
 #include "EntityTester.h"
 #include "EntityManager.h"
 #include "2SortsSparse.hpp"
 #include "PerfectET.hpp"
-#include <cstdint>
 #include "TestSystem.hpp"
+
 /*
 Ordered Sparse Requirements:
 
@@ -65,41 +67,6 @@ constexpr std::array<int, MAX_COMP_ID> CompSparse(const std::array<Comp_ID, N>& 
 	return sparse;
 }
 
-template<Comp_ID id, typename CompType = typename Comp<id>::type>
-struct CompData
-{
-	using type = CompType;
-	CompType data;
-};
-
-template<ET_ID id, int... seq>
-struct ETData
-{
-	static constexpr std::array<int, MAX_COMP_ID> sparse = CompSparse(ET<id>::components); //move to ET<id>.
-
-	std::tuple<decltype(faker<ET<id>::components[seq]>())...> data;
-	std::tuple<CompData<ET<id>::components[seq]>...> rata;
-	CompData<MASS>::type borin;
-	template<Comp_ID id, typename ComponentType = typename Comp<id>::type>
-	inline constexpr void writeData(const ComponentType& Data)
-	{
-		std::get<sparse[id]>(data) = Data;
-	}
-
-	template<Comp_ID id, typename ComponentType = typename Comp<id>::type>
-	inline constexpr ComponentType&& moveData()
-	{
-		return std::move(std::get<sparse[id]>(data));
-	}
-};
-
-template<int... ints>
-constexpr auto ETDataWrapper(std::integer_sequence<int, ints...> galling)
-{
-	return ETData<ARROW, ints...>();
-}
-
-
 //move this to ET<id>, or use to replace ETData?
 template<ET_ID id, int compIndex = 0, int lastComp = ET<id>::noOfComponents - 1> //-1 for easiers specialization
 struct idata
@@ -114,6 +81,13 @@ struct idata<id, compIndex, compIndex>
 	static constexpr std::tuple<decltype(faker<ET<id>::components[compIndex]>())> data = {};
 };
 
+
+template<ET_ID id>
+struct ETData
+{
+	using type = std::remove_const<decltype(idata<id>::data)>::type;
+};
+
 template<ET_ID id>
 class Entity : public Entity32Bit
 {
@@ -124,8 +98,9 @@ public:
 		std::cout << "\nhere" << ET<id>::components[1] << "\n\n\n";
 	}
 	//make single entity instantly
-	Entity(EntityManager* EM, decltype(idata<id>::data) data)
+	Entity(EntityManager* EM, ETData<id>::type data)
 	{
+		std::cout << "\nhere" << std::get<0>(data) << "\n\n\n";
 
 	}
 	~Entity() {}
@@ -133,28 +108,14 @@ public:
 
 int main()
 {
-	idata<ARROW> dita;
-	auto blata = dita.data;
+	ETData<ARROW>::type dita;
 
 	typedef float Mass; //any value in this for clarity?
-	constexpr auto sequ = std::make_integer_sequence<int,4>();
-	auto newland = ETDataWrapper(sequ);
-	typedef decltype(newland) ArrowData;
-	newland.data;
-	ArrowData test;
-	test.data;
-	test.writeData<VELOCITY>(4);
-	auto moved = test.moveData<VELOCITY>();
-	std::cout << "fghfgh" << std::get<0>(test.data);
-
-
-	std::tuple<TwoSortsSparse<MASS>, TwoSortsSparse<STATE>> testuple;
-	std::get<1>(testuple).addComponent(Entity32Bit(1,OBJ),4.5f);
-	std::cout << "\n\n testuple: " << std::get<1>(testuple).mCDS[1];
 
 	EntityManager tes;
 	testSystem(&tes);
-	Entity<ARROW> entityCreationTester(&tes);
+	std::get<0>(dita) = 4; //need to remove const in idata.
+	Entity<ARROW> entityCreationTester(&tes,dita);
 
 
 	constexpr auto tomfoolery = getParents(MAGIC_ARROW);
