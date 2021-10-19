@@ -7,7 +7,7 @@
 #include "2SortsSparse.hpp"
 #include "PerfectET.hpp"
 #include "TestSystem.hpp"
-
+#include "Entity.hpp"
 /*
 Ordered Sparse Requirements:
 
@@ -40,84 +40,17 @@ game dev rules:
 try and store states outside of gameloop.
 */
 
-//problems 1: get a tuple of component types for each ET<id>
-
-
-//trick to get type for ids, for some reason you can't use Comp<id>::type in Data. Might be better way.
-template<Comp_ID id, typename ReturnType = typename Comp<id>::type>
-constexpr ReturnType faker()
-{
-	return ReturnType();
-}
-
-template<int N>
-constexpr std::array<int, MAX_COMP_ID> CompSparse(const std::array<Comp_ID, N>& arr)
-{
-	std::array<int, MAX_COMP_ID> sparse = {};
-
-	for (int i = 0; i < MAX_COMP_ID; ++i)
-	{
-		sparse[i] = MAX_COMP_ID; //do this so 0's aren't default state of sparse. not needed for current function.
-	}
-	for (int i = 0; i < N; ++i)
-	{
-		sparse[arr[i]] = i;
-	}
-
-	return sparse;
-}
-
-//move this to ET<id>, or use to replace ETData?
-template<ET_ID id, int compIndex = 0, int lastComp = ET<id>::noOfComponents - 1> //-1 for easiers specialization
-struct idata
-{
-	using CompType = decltype(faker<ET<id>::components[compIndex]>());
-	static constexpr auto data = std::tuple_cat(std::make_tuple(CompType()), idata<id, compIndex + 1, lastComp>::data);
-};
-
-template<ET_ID id, int compIndex>
-struct idata<id, compIndex, compIndex>
-{
-	static constexpr std::tuple<decltype(faker<ET<id>::components[compIndex]>())> data = {};
-};
-
-
-template<ET_ID id>
-struct ETData
-{
-	using type = std::remove_const<decltype(idata<id>::data)>::type;
-};
-
-template<ET_ID id>
-class Entity : public Entity32Bit
-{
-public:
-	//add entity to batch creator in EM - should this include data now to be tansfered later? is there a way to do otherwise?
-	Entity(EntityManager* EM)
-	{
-		std::cout << "\nhere" << ET<id>::components[1] << "\n\n\n";
-	}
-	//make single entity instantly
-	Entity(EntityManager* EM, ETData<id>::type data)
-	{
-		std::cout << "\nhere" << std::get<0>(data) << "\n\n\n";
-
-	}
-	~Entity() {}
-};
-
 int main()
 {
-	ETData<ARROW>::type dita;
-
 	typedef float Mass; //any value in this for clarity?
 
+	
+	ETData<ARROW> dataTest;
+	dataTest.get<VELOCITY>() = 8;
 	EntityManager tes;
 	testSystem(&tes);
-	std::get<0>(dita) = 4; //need to remove const in idata.
-	Entity<ARROW> entityCreationTester(&tes,dita);
-
-
+	Entity<ARROW> entityCreationTester(dataTest);
+	tes.deleteEntity(entityCreationTester);
 	constexpr auto tomfoolery = getParents(MAGIC_ARROW);
 	constexpr auto domfoolery = getInheritors(PHYS_OBJ);
 	constexpr auto vomfoolery = getComponents(ARROW);

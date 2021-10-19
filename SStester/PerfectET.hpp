@@ -770,6 +770,24 @@ struct GNC
 };
 #pragma endregion
 
+template<int N>
+constexpr std::array<int, MAX_COMP_ID> CompSparse(const std::array<Comp_ID, N>& arr)
+{
+	std::array<int, MAX_COMP_ID> sparse = {};
+
+	for (int i = 0; i < MAX_COMP_ID; ++i)
+	{
+		sparse[i] = MAX_COMP_ID; //do this so 0's aren't default state of sparse. not needed for current function.
+	}
+	for (int i = 0; i < N; ++i)
+	{
+		sparse[arr[i]] = i;
+	}
+
+	return sparse;
+}
+
+
 //All usefull info of ET, derived from ETInfo. Cant just do ETInfo as functions such as getComponents don't work if put before ETinfo.
 //Make this a set of constexpr functions? 
 template<ET_ID id>
@@ -793,7 +811,8 @@ struct ET
 	//what new components are there. 
 	static constexpr int noOfComponents = getNoOfComponents<id>::value + ETInfo<id>::noOfNewComponents;
 	static constexpr std::array<Comp_ID, noOfComponents> components = concatinate(getComponents<id>::value,ETInfo<id>::newComponents);
-
+	//Sparse for getting order of components - used in ETData for ease of use
+	static constexpr std::array<int, MAX_COMP_ID> sparse = CompSparse(components);
 };
 #pragma region Static To Non-Static Access
 //this is a method to allow for loops in general code. it gives componentAccess[componentBounds[ET_ID]...componentBounds[ET_ID+1]] = all ET<ET_ID>

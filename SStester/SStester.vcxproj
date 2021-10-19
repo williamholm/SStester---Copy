@@ -142,9 +142,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="2SortsSparse.hpp" />
+    <ClInclude Include="Entity.hpp" />
     <ClInclude Include="EntityFlags.h" />
     <ClInclude Include="EntityManager.h" />
     <ClInclude Include="EntityTester.h" />
+    <ClInclude Include="ETData.hpp" />
     <ClInclude Include="FunctionTimer.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="PerfectET.hpp" />

@@ -5,6 +5,7 @@
 #include "PerfectET.hpp"
 #include "Object.h"
 #include "2SortsSparse.hpp"
+#include "Entity.hpp"
 //#include "Object.h"
 
 /* Design:
@@ -74,6 +75,13 @@ public:
 	{
 		return std::get<component>(mSparses);
 	}
+
+	template<ET_ID id>
+	void addEntity(Entity<id>& entity)
+	{
+		entity.number(); 
+	}
+
 	//should mark entity for deletion. then delete as soon as no ET data being used (multi threading)
 	//Or should mark entity for deletion - have system to detect it has been marked and can't be used,
 	//then delete at end of cycle for efficieny.
