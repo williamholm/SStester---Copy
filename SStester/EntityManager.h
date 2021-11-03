@@ -6,6 +6,7 @@
 #include "Object.h"
 #include "2SortsSparse.hpp"
 #include "Entity.hpp"
+#include "ETData.hpp"
 //#include "Object.h"
 
 /* Design:
@@ -64,30 +65,82 @@ constexpr auto testfun(std::integer_sequence<int, 0, ints...> seq)
 * for all NPCs create a wolf at their location
 * 
 */
+
+/*
+Offset plan: 
+
+each ET has a max no allowed that cumulatively gives an offset value.
+using this info we can reduce the SS drastically - at the cost of more operations depending on how far it is taken.
+
+possible actions:
+
+1) only account for space for ETs containing the sparse sets component - can mabye constexpr solve this in Comp?
+something like; EntityNum - Comp<comp_id>::Offset[ET_id]; can we restrict this to only be used when adding and deleting entities?
+
+not sure it is worth doing this even though there are limited extra operations - will look at memory after test cases.
+*/
+
 class EntityManager
 {
 public:
 	//is there a better way to do this?
 	inline static auto mSparses = testfun(std::make_integer_sequence<int, MAX_COMP_ID>());
 
+	uint32_t mNextEntityNum;
+	std::vector<uint32_t> mDeletedEntityNum; 
+
 	template<Comp_ID component> //what are the ramifications of access like this? seems bad for Multi Threading
-	inline TwoSortsSparse<component>& sparse()
-	{
-		return std::get<component>(mSparses);
-	}
+	inline TwoSortsSparse<component>& sparse(){	return std::get<component>(mSparses);}
 
 	template<ET_ID id>
-	void addEntity(Entity<id>& entity)
+	void addEntity(Entity<id>& entity, ETData<id>& data) //giving up on ETData as moving from ETData seems inefficient.
 	{
-		entity.number(); 
+		if(mDeletedEntityNum.size() == 0) //this if statement isn't great - should be a way to predict state of deleted entities
+		{
+			assert(mNextEntityNum < maxEntityNumber);
+			entity.addNumber(mNextEntityNum++);
+			//std::cout << "\n entity num: " << entity.number() << "    next: " << mNextEntityNum << "     entity group: " << entity.group();
+		}
+		else
+		{
+			entity.addNumber(*mDeletedEntityNum.end());
+			mDeletedEntityNum.pop_back();
+		}
+		addData(entity, data);
+	}
+
+	template<ET_ID id, int index = ET<id>::noOfComponents-1>
+	void addData(Entity32Bit entity, ETData<id>& data)//can remove entity and just add directly to CDS after chaning 2SS - test speed.
+	{
+		//data.get is causing stack overflow here. no idea why
+		std::get<ET<id>::components[index]>(mSparses).addComponent(entity, std::get<index>(data.data));
+//		std::cout << "\n\n ET: " << ET<id>::components[index] << "    ETData: " << ET<id>::sparse[ET<id>::components[index]] <<"\n\n";
+		if constexpr(index != 0)
+		{
+			addData<id, index - 1>(entity, data);
+		}
 	}
 
 	//should mark entity for deletion. then delete as soon as no ET data being used (multi threading)
 	//Or should mark entity for deletion - have system to detect it has been marked and can't be used,
 	//then delete at end of cycle for efficieny.
-	void deleteEntity(Entity32Bit entity) {}
+	template<ET_ID id>
+	void deleteEntity(Entity<id>& entity)
+	{
+		removeData<id>(entity);
+		mDeletedEntityNum.push_back(entity.number());
+	//	entity.~Entity(); //seems okay - not sure if this is final design
+	}
 
-	
+	template<ET_ID id, int index = ET<id>::noOfComponents - 1>
+	void removeData(Entity32Bit entity)//can remove entity and just add directly to CDS after chaning 2SS - test speed.
+	{
+		std::get<ET<id>::components[index]>(mSparses).deleteComponent(entity);
+		if constexpr (index != 0)
+		{
+			removeData<id, index - 1>(entity);
+		}
+	}
 	//does it make more sense for this and other singular functions to be in classes instead of here?
 	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
 	inline ReturnType& getComponentData(Entity32Bit entity) { return std::get<component>(mSparses)(entity);	}
@@ -103,10 +156,13 @@ public:
 	//return the end + 1 index of ET in sparse<compononent>
 	template<Comp_ID component>
 	inline uint32_t getETend(ET_ID entityType) { return std::get<component>(mSparses).groupEnd(entityType);}
-
+	//get all of entity type + inheritors
+	template<ET_ID id, Comp_ID component>
+	inline auto getInheritorBounds() { } //should return either bounds class (like ETData) or some kinda tuple?
+	
 	template<Comp_ID component, typename ComponentType = typename Comp<component>::type>
 	inline ComponentType& operator()(Entity32Bit entity) { return std::get<component>(mSparses)(entity); }
-	EntityManager() {};
+	EntityManager():mNextEntityNum(1) {};
 	~EntityManager() {};
 };
 

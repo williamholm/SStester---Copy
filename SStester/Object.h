@@ -23,7 +23,7 @@ public:
 	//
 	inline uint32_t group() const noexcept
 	{
-		return ((mEntity >> entityValueBits) & maxEntityFlag);
+		return ((mEntity >> entityValueBits) & maxEntityFlag); //don't think maxEntityFlag is needed here?
 	}
 	void addFlags(uint32_t flags) noexcept
 	{
@@ -31,13 +31,18 @@ public:
 		mEntity |= (flags << entityValueBits);
 
 	}
-	Entity32Bit() = default;
+	inline void addNumber(const uint32_t entityNum) noexcept
+	{
+		assert(entityNum <= maxEntityNumber);
+		mEntity = entityNum + (this->group() << entityValueBits); //might not be fastest way should be fine though.
+	}
+	Entity32Bit() :mEntity(0) {}
 	~Entity32Bit() = default;
 
 	Entity32Bit(const uint32_t entityNumber, const uint32_t flags) : mEntity(entityNumber)
 	{
 		assert(entityNumber < maxEntityNumber);
-		//might be worth doing forwarding here, but copying is cheep anyway.
+		//might be worth doing forwarding here, but copying is cheap anyway.
 		addFlags(flags);
 	}
 };

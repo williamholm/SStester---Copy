@@ -813,6 +813,8 @@ struct ET
 	static constexpr std::array<Comp_ID, noOfComponents> components = concatinate(getComponents<id>::value,ETInfo<id>::newComponents);
 	//Sparse for getting order of components - used in ETData for ease of use
 	static constexpr std::array<int, MAX_COMP_ID> sparse = CompSparse(components);
+	//
+//	static constexpr uint32_t offset = ETinfo<id>::maxNoOfEntity; //need to do this cumulatively 
 };
 #pragma region Static To Non-Static Access
 //this is a method to allow for loops in general code. it gives componentAccess[componentBounds[ET_ID]...componentBounds[ET_ID+1]] = all ET<ET_ID>
@@ -981,4 +983,6 @@ struct Comp
 	//sparse set for ordering ETs which have this component, last value is total no of entitys with component.
 	static constexpr auto sparse = getCompSparse<id>();
 	static constexpr auto noOfETsWithComp = sparse[ET_ID::MAX_ET_ID];
+	//offsets for SS so they can be condensed - this doesn't need to be implemented for my uses i think.
+	static constexpr std::array<uint32_t, ET_ID::MAX_ET_ID> offsets = {};
 }; 

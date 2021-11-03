@@ -30,8 +30,25 @@ Improve Value sort -- work on typeSort2 -- Look into merge sorting. Quick sort i
 
 */
 
+class BoundsPointer //should rework this later it works but is a bit dumb
+{
+	uint32_t* mStart;
+	uint32_t* mEnd;
+public:
+	uint32_t getStart() { return *mStart; }
+	uint32_t getEnd() { return *mEnd; }
+	BoundsPointer(uint32_t* start, uint32_t* end):mStart(start),mEnd(end) {}
+	BoundsPointer() {}
+	~BoundsPointer() {}
+};
+template<Comp_ID id>
+class BoundsAccessor
+{
+	std::array<BoundsPointer, MAX_ET_ID> mBounds; //see how we want access before completing / discarding class.
 
-
+public:
+	
+};
 template<Comp_ID mID, typename DataType = typename Comp<mID>::type>
 class TwoSortsSparse
 {
@@ -44,6 +61,7 @@ public: //switch to private after testing
 private:
 	std::vector<uint32_t> mSparse;
 	std::vector<uint32_t> mBounds;	//mBounds[i] is first index i'th ET for this SS
+	std::vector<BoundsPointer> mRefBounds;// this might be changed but is a way to remove some constexpr limitations
 	const int mNoOfBounds = component::noOfETsWithComp + 1;
 public:
 	inline bool entityInSet(Entity32Bit entity) noexcept
@@ -57,6 +75,7 @@ public:
 
 	void addComponent(Entity32Bit entity, const DataType& data)
 	{
+		//std::cout << "\n\n Entity in set: " << entityInSet(entity) << "  Entity num: " << entity.number() << "  Entity group: " << entity.group();
 		//remember this switches off in release mode.
 		assert(!entityInSet(entity) && validEntityGroup(entity));
 		mSparse[entity.number()] = mCDS.size();
@@ -139,10 +158,20 @@ public:
 		}
 	}
 
+	void setUpRefBounds()
+	{
+		mRefBounds.resize(MAX_ET_ID);
+		for (int i = 1; i < MAX_ET_ID; ++i)
+		{
+			if (component::sparse[i] != MAX_COMP_ID)
+			{
+				mRefBounds[i] = BoundsPointer(&mBounds[component::sparse[i]], &mBounds[component::sparse[i]+1]);
+			}
+		}
+	}
 
-
-	//internal algorithm
 private:
+#pragma region Algorithms
 
 	void stableSwapToBack(int index)
 	{
@@ -252,9 +281,15 @@ private:
 
 	}
 
+#pragma endregion
+
 public:
 	inline uint32_t groupBegin(const ET_ID id) { return mBounds[component::sparse[id]]; }
 	inline uint32_t groupEnd(const ET_ID id) { return mBounds[component::sparse[id] + 1]; }
+	//this gives unneeded info and can be manipulated by end user - consider returning an array and setting uneeded results to = 0 or making bounds
+	//array a sparse set naturally.
+	inline std::vector<BoundsPointer> getBounds() { return mRefBounds; }
+
 	//returns entity at a given index of dense sets.
 	inline Entity32Bit getEntity(const uint32_t index) { return mEDS[index]; }
 	//returns indexs of CDS and EDS so that they can be accessed without going back into SparseSet
@@ -286,6 +321,7 @@ public:
 		mCDS.emplace_back(DataType());
 		mEDS.push_back(Entity32Bit());
 		mBounds.resize(component::noOfETsWithComp + 2);
+		setUpRefBounds();
 		mSparse.resize(maxEntityNumber);//should change this to be smarter to save space.
 
 		for (auto& bound : mBounds) { ++bound; };

@@ -40,17 +40,61 @@ game dev rules:
 try and store states outside of gameloop.
 */
 
+
 int main()
 {
 	typedef float Mass; //any value in this for clarity?
+	Testing::Timer timer;
 
 	
 	ETData<ARROW> dataTest;
 	dataTest.get<VELOCITY>() = 8;
-	EntityManager tes;
+	EntityManager tes; //causes stack overflow with no known change? need to figure this out.
 	testSystem(&tes);
-	Entity<ARROW> entityCreationTester(dataTest);
-	tes.deleteEntity(entityCreationTester);
+	Entity<ARROW> entityCreationTester;
+
+	entityCreationTester.addFlags(ARROW);
+	std::cout << "\n\n" << entityCreationTester.group();
+	entityCreationTester.addNumber(1);
+	std::cout << "\n\n" << entityCreationTester.group();
+
+
+	ET<ARROW>::components;
+	auto a = dataTest.get<ET<ARROW>::components[0]>();
+	auto b = dataTest.get<ET<ARROW>::components[1]>();
+	auto c = dataTest.get<ET<ARROW>::components[2]>();
+	auto d = dataTest.get<ET<ARROW>::components[3]>();
+
+	Entity<ARROW> tester;
+	tester.addNumber(2);
+	std::cout << "\n\ntesting 2 number: " << tester.number() << "   Group: " << tester.group();
+
+	timer.startTimer();
+	for (int i = 1; i < 10000; ++i)
+	{
+		tes.addEntity(entityCreationTester, dataTest);
+	}
+	timer.printTime("\nNew 10000 creation time for arrows: ");
+
+	timer.startTimer();
+	for (int i = 10000; i < 20000; ++i) //have tested this removing first for loop and its around same time still =]
+	{
+		tes.sparse<ET<ARROW>::components[0]>().addComponent(Entity32Bit(i + 1, 13), std::get<0>(dataTest.data));
+		tes.sparse<ET<ARROW>::components[1]>().addComponent(Entity32Bit(i + 1, 13), std::get<1>(dataTest.data));
+		tes.sparse<ET<ARROW>::components[2]>().addComponent(Entity32Bit(i + 1, 13), std::get<2>(dataTest.data));
+		tes.sparse<ET<ARROW>::components[3]>().addComponent(Entity32Bit(i + 1, 13), std::get<3>(dataTest.data));
+	}
+	timer.printTime("\BareBones 10000 creation time for arrows: ");
+	std::cout << " size: " << std::get<VELOCITY>(tes.mSparses).mCDS.size() << " \n\n\n";
+
+	timer.startTimer();
+	for (int i = 1; i < 10000; ++i)
+	{
+		entityCreationTester.addNumber(i);
+		tes.deleteEntity(entityCreationTester);
+	}
+	timer.printTime("\BareBones 10000 deletion time for arrows: ");
+	std::cout << " size: " << std::get<VELOCITY>(tes.mSparses).mCDS.size() << " \n\n\n";
 	constexpr auto tomfoolery = getParents(MAGIC_ARROW);
 	constexpr auto domfoolery = getInheritors(PHYS_OBJ);
 	constexpr auto vomfoolery = getComponents(ARROW);
@@ -59,7 +103,6 @@ int main()
 	TwoSortsSparse<Comp_ID::POS3D> bo(100000);
 	std::vector<vec3> testVec;
 
-	Testing::Timer timer;
 	timer.startTimer();
 
 	for (int i = 1; i < 10000; ++i)
