@@ -30,38 +30,27 @@ Improve Value sort -- work on typeSort2 -- Look into merge sorting. Quick sort i
 
 */
 
-class BoundsPointer //should rework this later it works but is a bit dumb
+struct Bound
 {
-	uint32_t* mStart;
-	uint32_t* mEnd;
-public:
-	uint32_t getStart() { return *mStart; }
-	uint32_t getEnd() { return *mEnd; }
-	BoundsPointer(uint32_t* start, uint32_t* end):mStart(start),mEnd(end) {}
-	BoundsPointer() {}
-	~BoundsPointer() {}
+	uint32_t mStart;
+	uint32_t mEnd;
+	Bound(uint32_t start, uint32_t end) : mStart(start), mEnd(end) {}
+	~Bound() = default;
 };
-template<Comp_ID id>
-class BoundsAccessor
-{
-	std::array<BoundsPointer, MAX_ET_ID> mBounds; //see how we want access before completing / discarding class.
 
-public:
-	
-};
 template<Comp_ID mID, typename DataType = typename Comp<mID>::type>
 class TwoSortsSparse
 {
 	//not entirely sure why DataType needs to be specified here, but functionality is unchanged
 	using component = Comp<mID>;
 
-public: //switch to private after testing
+public:
 	std::vector<DataType> mCDS;		//component dense set
 	std::vector<Entity32Bit> mEDS;  //entity dense set
 private:
 	std::vector<uint32_t> mSparse;
 	std::vector<uint32_t> mBounds;	//mBounds[i] is first index i'th ET for this SS
-	std::vector<BoundsPointer> mRefBounds;// this might be changed but is a way to remove some constexpr limitations
+	std::vector<Entity32Bit> mPendingDeletes;
 	const int mNoOfBounds = component::noOfETsWithComp + 1;
 public:
 	inline bool entityInSet(Entity32Bit entity) noexcept
@@ -84,6 +73,10 @@ public:
 
 		quickInsert(mSparse[entity.number()]);
 	}
+	void addToPendingDelete(Entity32Bit entity)
+	{
+		mPendingDeletes.push_back(entity);
+	}
 	void deleteComponent(Entity32Bit entity)
 	{
 		assert(entityInSet(entity));
@@ -92,6 +85,37 @@ public:
 		mCDS.pop_back();
 		mEDS.pop_back();
 		mSparse[entity.number()] = 0;
+	}
+	void deletePending()
+	{
+		int smallSize = 5000; //test for when this is most effecient -- seemed about equal for 3-5k.
+		if ( mPendingDeletes.size() == 0)
+		{
+			return;
+		}
+		else if (mPendingDeletes.size() < smallSize)
+		{
+			for (const auto& entity : mPendingDeletes)
+			{
+				deleteComponent(entity);
+				
+			}
+			mPendingDeletes.clear();
+		}
+		else
+		{
+			int i = mPendingDeletes.size() - 1;
+			for (; i >= 0; --i)
+			{
+				fullSwapComponent(mSparse[mPendingDeletes[i].number()], mCDS.size() - 1);
+
+				mCDS.pop_back();
+				mEDS.pop_back();
+				mSparse[mPendingDeletes[i].number()] = 0;
+				mPendingDeletes.pop_back();
+			}
+			typeSort();
+		}
 	}
 	//Inserts component into its ET group - requires max Component<mID>::numberOfETs * 2 swaps.
 	void quickInsert(int index)
@@ -108,7 +132,7 @@ public:
 
 	}
 
-	//works but might be a faster way to do this? - its not t0o slow tho. single core ~200micro secs for 10000 elements
+	//works but might be a faster way to do this? - its not to slow tho. single core ~200micro secs for 10000 elements
 	void typeSort()
 	{
 		//reset mBounds
@@ -155,18 +179,6 @@ public:
 		for (int i = startIndex; i < endIndex; i++)
 		{
 			mSparse[mEDS[i].number()] = i;
-		}
-	}
-
-	void setUpRefBounds()
-	{
-		mRefBounds.resize(MAX_ET_ID);
-		for (int i = 1; i < MAX_ET_ID; ++i)
-		{
-			if (component::sparse[i] != MAX_COMP_ID)
-			{
-				mRefBounds[i] = BoundsPointer(&mBounds[component::sparse[i]], &mBounds[component::sparse[i]+1]);
-			}
 		}
 	}
 
@@ -288,8 +300,7 @@ public:
 	inline uint32_t groupEnd(const ET_ID id) { return mBounds[component::sparse[id] + 1]; }
 	//this gives unneeded info and can be manipulated by end user - consider returning an array and setting uneeded results to = 0 or making bounds
 	//array a sparse set naturally.
-	inline std::vector<BoundsPointer> getBounds() { return mRefBounds; }
-
+	inline Bound getBounds(ET_ID id) { return Bound(mBounds[component::sparse[id]], mBounds[component::sparse[id] + 1]); }
 	//returns entity at a given index of dense sets.
 	inline Entity32Bit getEntity(const uint32_t index) { return mEDS[index]; }
 	//returns indexs of CDS and EDS so that they can be accessed without going back into SparseSet
@@ -321,7 +332,6 @@ public:
 		mCDS.emplace_back(DataType());
 		mEDS.push_back(Entity32Bit());
 		mBounds.resize(component::noOfETsWithComp + 2);
-		setUpRefBounds();
 		mSparse.resize(maxEntityNumber);//should change this to be smarter to save space.
 
 		for (auto& bound : mBounds) { ++bound; };

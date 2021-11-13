@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <math.h>
 /*
 Condsider whole system 2 examples:
 
@@ -54,8 +55,9 @@ class vec3
 {
 public:
 	float x, y, z;
-	float distance() { return (x * x + y * y + z * z); }
-	bool operator< (vec3 vec)
+	float distance() const { return (x * x + y * y + z * z); }
+	float distance( vec3 vec) { return(sqrt((x-vec.x)* (x - vec.x) + (y - vec.y)* (y - vec.y) + (z - vec.z)* (z - vec.z))); }
+	bool operator< (const vec3& vec)
 	{
 		return this->distance() < vec.distance();
 	}
@@ -910,13 +912,29 @@ struct compArray<maxID, maxID>
 	static constexpr auto value = std::array<std::array<Comp_ID, (int)Comp_ID::MAX_COMP_ID>, 1>();
 };
 
+constexpr auto getNoOfParents(ET_ID id)
+{
+	return noOfParentArray<>::value[id];
+}
+template<typename T, int size>
+class TempSol
+{
+public:
+	std::array<T, size> data;
+	int end;
+	constexpr TempSol(const std::array<T, size>& arr, int lastValidValue) : data(arr),end(lastValidValue) {}
+};
+
 constexpr auto getParents(ET_ID id)
 {
-	//remove blanks first probably.
-	return parentArray<>::value[id];
+	//remove blanks first probably. - can't think of a way to non-constexpr access if arrays are different sizes,
+	//so the blanks stay for now.
+//	return parentArray<>::value[id];
+	return TempSol(parentArray<>::value[id], getNoOfParents(id));
 }
 constexpr auto getInheritors(ET_ID id)
 {
+	
 	return inheritorArray<>::value[id];
 }
 constexpr auto getComponents(ET_ID id)

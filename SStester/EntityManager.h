@@ -79,7 +79,16 @@ something like; EntityNum - Comp<comp_id>::Offset[ET_id]; can we restrict this t
 
 not sure it is worth doing this even though there are limited extra operations - will look at memory after test cases.
 */
-
+template<ET_ID id>
+class TaggedBound
+{
+public:
+	static constexpr ET_ID mID = id;
+	int start;
+	int end;
+	TaggedBound(const Bound& bound) :end(bound.mEnd), start(bound.mStart) {}
+	~TaggedBound() = default;
+};
 class EntityManager
 {
 public:
@@ -88,7 +97,7 @@ public:
 
 	uint32_t mNextEntityNum;
 	std::vector<uint32_t> mDeletedEntityNum; 
-
+	std::vector<Entity32Bit> mPendingDeletes; //move this to 2ss?
 	template<Comp_ID component> //what are the ramifications of access like this? seems bad for Multi Threading
 	inline TwoSortsSparse<component>& sparse(){	return std::get<component>(mSparses);}
 
@@ -112,9 +121,9 @@ public:
 	template<ET_ID id, int index = ET<id>::noOfComponents-1>
 	void addData(Entity32Bit entity, ETData<id>& data)//can remove entity and just add directly to CDS after chaning 2SS - test speed.
 	{
-		//data.get is causing stack overflow here. no idea why
-		std::get<ET<id>::components[index]>(mSparses).addComponent(entity, std::get<index>(data.data));
-//		std::cout << "\n\n ET: " << ET<id>::components[index] << "    ETData: " << ET<id>::sparse[ET<id>::components[index]] <<"\n\n";
+		//data.get was causing stack overflow here. no idea why
+		std::get<ET<id>::components[index]>(mSparses).addComponent(entity, data.get<ET<id>::components[index]>());
+	//	std::get<ET<id>::components[index]>(mSparses).addComponent(entity, std::get<index>(data.data));
 		if constexpr(index != 0)
 		{
 			addData<id, index - 1>(entity, data);
@@ -131,7 +140,6 @@ public:
 		mDeletedEntityNum.push_back(entity.number());
 	//	entity.~Entity(); //seems okay - not sure if this is final design
 	}
-
 	template<ET_ID id, int index = ET<id>::noOfComponents - 1>
 	void removeData(Entity32Bit entity)//can remove entity and just add directly to CDS after chaning 2SS - test speed.
 	{
@@ -141,7 +149,28 @@ public:
 			removeData<id, index - 1>(entity);
 		}
 	}
-	//does it make more sense for this and other singular functions to be in classes instead of here?
+
+	template<ET_ID id, int index = ET<id>::noOfComponents - 1>
+	void addToPendingDelete(Entity<id> entity)
+	{
+		std::get<ET<id>::components[index]>(mSparses).addToPendingDelete(entity);
+		if constexpr (index != 0)
+		{
+			addToPendingDelete<id, index - 1>(entity);
+		}
+	}
+	//has problem that it essentially means all threads must complete before this can be called, leading to a lot of stalling in system
+	//if not handled properly
+	template<Comp_ID component = (Comp_ID)1>
+	void deletePending()
+	{
+		if constexpr (component != MAX_COMP_ID)
+		{
+			std::get<component>(mSparses).deletePending();
+			deletePending<(Comp_ID)(component + 1)>();
+		}
+		return;
+	}
 	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
 	inline ReturnType& getComponentData(Entity32Bit entity) { return std::get<component>(mSparses)(entity);	}
 	//returns data given index of CDS.
@@ -153,38 +182,54 @@ public:
 	//return the starting index of ET in sparse<compononent>
 	template<Comp_ID component>
 	inline uint32_t getETBegining(ET_ID entityType) { return std::get<component>(mSparses).groupBegin(entityType); }
-	//return the end + 1 index of ET in sparse<compononent>
+	//return the end index of ET in sparse<compononent>
 	template<Comp_ID component>
 	inline uint32_t getETend(ET_ID entityType) { return std::get<component>(mSparses).groupEnd(entityType);}
-	//get all of entity type + inheritors
+	//
+	template<Comp_ID component>
+	inline Bound getBound(ET_ID id) { return std::get<component>(mSparses).getBounds(id); }
+	//bounds of id + its inheritors.
+private:
+	template<ET_ID id, Comp_ID component, int index>
+	auto inheritorBounds()
+	{
+		TaggedBound<ET<id>::inheritors[index]> bounds(getBound<component>(ET<id>::inheritors[index]));
+		if constexpr (index <= 0)
+		{
+			return bounds;
+		}
+		else
+		{
+			auto bs = std::make_tuple(bounds, inheritorBounds<id, component, index - 1>());
+			return bs;
+		}
+	}
+public:
+	template<ET_ID id, Comp_ID component, int index = ET<id>::noOfInheritors>
+	auto getInheritorBounds()
+	{
+		TaggedBound<id> bounds(getBound<component>(id));
+		auto bs = std::make_tuple(bounds, inheritorBounds<id, component, index - 1>());
+		return bs;
+	}
+
 	template<ET_ID id, Comp_ID component>
-	inline auto getInheritorBounds() { } //should return either bounds class (like ETData) or some kinda tuple?
-	
+	std::vector<Bound> getAllBounds()
+	{
+		std::vector<Bound> bounds;
+		bounds.push_back(getBound<component>(id));
+		for (const auto& inheritor : ET<id>::inheritors)
+		{
+			bounds.push_back(getBound<component>(inheritor));
+		}
+		return bounds;
+	}
+
 	template<Comp_ID component, typename ComponentType = typename Comp<component>::type>
 	inline ComponentType& operator()(Entity32Bit entity) { return std::get<component>(mSparses)(entity); }
 	EntityManager():mNextEntityNum(1) {};
 	~EntityManager() {};
 };
 
-
-template<Comp_ID id, typename ComponentType = typename CompInfo<id>::type>
-class SparseManager
-{
-private:
-	TwoSortsSparse<id, ComponentType> mSparseSet;
-public:
-
-	
-	void readET(ET_ID id);
-	void writeET(ET_ID id);
-	void addEntity(Entity32Bit entity);
-	void deleteEntity(Entity32Bit entity);
-	
-	//wtf is the point of doing this outside of SS?? scheduler/batch adding can be done here i guess?
-	SparseManager() {}
-	~SparseManager() = default;
-
-
-};
 
 

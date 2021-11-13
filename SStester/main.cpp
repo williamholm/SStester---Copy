@@ -25,7 +25,7 @@ Access:
 1) single access via entity
 2) multi unordered(or ordered within ETs) access via EntityType(s)
 3) multi access via multi ordered access via EntityTypes (or all)
-4) try and keep SS1[enity] = SS2[entity] i.e all components have same indexing for each ET (or change by known offset). 
+4) try and keep SS1[enity] = SS2[entity] + offset i.e all components have same indexing for each ET (or change by known offset for the type). 
 
 Sorting:
 
@@ -35,70 +35,62 @@ Sorting:
 
 
 */
-/*
-game dev rules:
-try and store states outside of gameloop.
-*/
+template<std::size_t I = 0, typename FuncT, typename... Tp>
+inline typename std::enable_if<I == sizeof...(Tp), void>::type
+for_each(std::tuple<Tp...>&, FuncT) // Unused arguments are given no names.
+{ }
 
+template<std::size_t I = 0, typename FuncT, typename... Tp>
+inline typename std::enable_if < I < sizeof...(Tp), void>::type
+	for_each(std::tuple<Tp...>& t, FuncT f)
+{
+	f(std::get<I>(t));
+	for_each<I + 1, FuncT, Tp...>(t, f);
+}
 
+template<ET_ID... ids>
+void tester(std::tuple<TaggedBound<ids>...>const& bounds)
+{
+	std::apply
+	(
+		[](TaggedBound<ids>... bound)
+		{
+			((std::cout<<"\n\n bound end: " <<ET<bound.mID>::parents[0]), ...);
+		},
+		bounds
+	);
+}
 int main()
 {
 	typedef float Mass; //any value in this for clarity?
 	Testing::Timer timer;
 
-	
 	ETData<ARROW> dataTest;
 	dataTest.get<VELOCITY>() = 8;
-	EntityManager tes; //causes stack overflow with no known change? need to figure this out.
+	EntityManager tes;
 	testSystem(&tes);
 	Entity<ARROW> entityCreationTester;
+	for_each(dataTest.data, [](...) {std::cout << "h"; });
+	auto teri = tes.getInheritorBounds<ARROW, POS3D>();
+	tester(teri);
 
-	entityCreationTester.addFlags(ARROW);
-	std::cout << "\n\n" << entityCreationTester.group();
-	entityCreationTester.addNumber(1);
-	std::cout << "\n\n" << entityCreationTester.group();
+	//timer.startTimer();
+	//for (int i = 1; i < 10000; ++i)
+	//{
+	//	tes.addEntity(entityCreationTester, dataTest);
+	//}
+	//timer.printTime("\nNew 10000 creation time for arrows: ");
 
-
-	ET<ARROW>::components;
-	auto a = dataTest.get<ET<ARROW>::components[0]>();
-	auto b = dataTest.get<ET<ARROW>::components[1]>();
-	auto c = dataTest.get<ET<ARROW>::components[2]>();
-	auto d = dataTest.get<ET<ARROW>::components[3]>();
-
-	Entity<ARROW> tester;
-	tester.addNumber(2);
-	std::cout << "\n\ntesting 2 number: " << tester.number() << "   Group: " << tester.group();
-
-	timer.startTimer();
-	for (int i = 1; i < 10000; ++i)
-	{
-		tes.addEntity(entityCreationTester, dataTest);
-	}
-	timer.printTime("\nNew 10000 creation time for arrows: ");
-
-	timer.startTimer();
-	for (int i = 10000; i < 20000; ++i) //have tested this removing first for loop and its around same time still =]
-	{
-		tes.sparse<ET<ARROW>::components[0]>().addComponent(Entity32Bit(i + 1, 13), std::get<0>(dataTest.data));
-		tes.sparse<ET<ARROW>::components[1]>().addComponent(Entity32Bit(i + 1, 13), std::get<1>(dataTest.data));
-		tes.sparse<ET<ARROW>::components[2]>().addComponent(Entity32Bit(i + 1, 13), std::get<2>(dataTest.data));
-		tes.sparse<ET<ARROW>::components[3]>().addComponent(Entity32Bit(i + 1, 13), std::get<3>(dataTest.data));
-	}
-	timer.printTime("\BareBones 10000 creation time for arrows: ");
-	std::cout << " size: " << std::get<VELOCITY>(tes.mSparses).mCDS.size() << " \n\n\n";
-
-	timer.startTimer();
-	for (int i = 1; i < 10000; ++i)
-	{
-		entityCreationTester.addNumber(i);
-		tes.deleteEntity(entityCreationTester);
-	}
-	timer.printTime("\BareBones 10000 deletion time for arrows: ");
-	std::cout << " size: " << std::get<VELOCITY>(tes.mSparses).mCDS.size() << " \n\n\n";
+	//timer.startTimer();
+	//for (int i = 1; i < 10000; ++i)
+	//{
+	//	entityCreationTester.addNumber(i);
+	//	tes.deleteEntity(entityCreationTester);
+	//}
+	//timer.printTime("\BareBones 10000 deletion time for arrows: ");
 	constexpr auto tomfoolery = getParents(MAGIC_ARROW);
 	constexpr auto domfoolery = getInheritors(PHYS_OBJ);
 	constexpr auto vomfoolery = getComponents(ARROW);
-
 
 	TwoSortsSparse<Comp_ID::POS3D> bo(100000);
 	std::vector<vec3> testVec;
@@ -126,11 +118,6 @@ int main()
 	bo.typeSort();
 	timer.printTime(std::string("\ntype sort 1 "));
 
-//	for (int i = 5; i < 10000; i += 2 * MAX_ET_ID)
-//	{
-//		bo.deleteComponent(Entity32Bit(i, 5));
-//	}
-
 
 	for (int j = 1; j < ET_ID::MAX_ET_ID; j++)
 	{
@@ -152,8 +139,6 @@ int main()
 	timer.startTimer();
 	std::sort(testVec.begin(), testVec.end());
 	timer.printTime(std::string("\nstd::sort "));
-
-
 	while (1) {}
 	return 0;
 }
