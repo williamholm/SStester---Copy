@@ -1,7 +1,7 @@
 # SStester---Copy
 This is an entity component system made using sparse set, where entity types can inherit from eachother to make some searching paterns easy.
 
-requires c++20,
+requires c++20, runs using visual studion currently:
 
 For Mike:
 
@@ -37,3 +37,7 @@ tools to access data of entities in different ways
 
 TestSystem runs through the basic operations of EntityManger, isn't very extensive as i ran into a problem on thursday where i realized c++ has 
 no way to iterate through tuples natively, and the obvious solutions don't really work for most of what i need. (it is apparently coming in 2023, somewhat fustratingly)
+
+  
+  
+  
