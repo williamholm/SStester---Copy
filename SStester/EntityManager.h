@@ -131,6 +131,17 @@ public:
 			addToPendingDelete<id, index - 1>(entity);
 		}
 	}
+
+	template<ET_ID id, int index = ET<id>::noOfComponents - 1>
+	void addToPendingDelete(const TaggedBound<id>& bound, Entity32Bit entityNum)
+	{
+		std::get<ET<id>::components[index]>(mSparses).addToPendingDelete(entityNum);
+		if constexpr (index != 0)
+		{
+			addToPendingDelete<id, index - 1>(bound, entityNum);
+		}
+	}
+
 	//has problem that it essentially means all threads must complete before this can be called, leading to a lot of stalling in system
 	//if not handled properly
 	template<Comp_ID component = (Comp_ID)1>

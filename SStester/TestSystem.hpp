@@ -40,6 +40,35 @@ constexpr void TS4Loop(EntityManager* EM, vec3 playerPos)
 	}
 }
 
+template<int index = 0, ET_ID... ids>
+void tupleIterationExample(const std::tuple<TaggedBound<ids>...>& bounds, EntityManager* EM, vec3 playerPos)
+{
+	if constexpr (index == sizeof...(ids))
+	{
+		return;
+	}
+	else
+	{
+		for (int i = std::get<index>(bounds).start; i < std::get<index>(bounds).end; ++i)
+		{
+
+			if (playerPos.distance(EM->getComponentData<POS3D>(i)) < 5)
+			{
+				//uses TaggedBounds<id> to deduce template argument for addToPendingDelete
+				EM->addToPendingDelete(std::get<index>(bounds), EM->getEntity<POS3D>(i));
+
+			}
+			else if (playerPos.distance(EM->getComponentData<POS3D>(i)) < 10)
+			{
+				//get velocity of entity at index i of mEDS in SS<POS3D> and divide by distance from player.
+				EM->getComponentData<VELOCITY>(EM->getEntity<POS3D>(i)) /= playerPos.distance(EM->getComponentData<POS3D>(i));
+			}
+		}
+		tupleIterationExample<index+1>(bounds, EM, playerPos);
+		return;
+	}
+}
+
 void testSystem(EntityManager* EM)
 {
 	Testing::Timer timer;
@@ -91,12 +120,20 @@ void testSystem(EntityManager* EM)
 	}
 	timer.printTime("Normal Loop: ");
 
-	timer.startTimer();
+	//Sol1 of iterating cds while being able to know ET_ID at compile time
 	//need to make constexpr arrays which are ET<id> + ET<id>::inheritors for this to work, not sure if this is final way though
+	timer.startTimer();
 	TS4Loop<2, gTestArrowArr, 0>(EM, playerPos);
 	timer.printTime("TS4Loop: ");
+
+
+	//Sol2 of iterating cds while being able to know ET_ID at compile time
+	//this is better as it is more in line with what will come in c++23,
+	auto tupleBounds = EM->getInheritorBounds<ARROW, POS3D>();
+	timer.startTimer();
+	tupleIterationExample(tupleBounds, EM, playerPos);
+	timer.printTime("TS4Loop: ");
 	EM->deletePending();
-	timer.printTime("delete timer: ");
 	std::cout << "Size after deleting: " << EM->sparse<POS3D>().mCDS.size();
 }
 
