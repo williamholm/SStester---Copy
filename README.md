@@ -33,4 +33,4 @@ Program works by having an EntityManager that stores sparse sets of all Comp<id>
 tools to access data in different ways
 
 TestSystem runs through the basic operations of EntityManger, isn't very extensive as i ran into a problem on thursday where i realized c++ has 
-no way to iterate through tuples natively, and the obvious solutions don't really work for most of what i need. (it is apparently coming in 2023 tho)
+no way to iterate through tuples natively, and the obvious solutions don't really work for most of what i need. (it is apparently coming in 2023, somewhat fustratingly)
