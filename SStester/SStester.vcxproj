@@ -147,6 +147,7 @@
     <ClInclude Include="EntityManager.h" />
     <ClInclude Include="EntityTester.h" />
     <ClInclude Include="ETData.hpp" />
+    <ClInclude Include="example.h" />
     <ClInclude Include="FunctionTimer.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="PerfectET.hpp" />

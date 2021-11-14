@@ -48,6 +48,9 @@
     <ClInclude Include="ETData.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="example.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
