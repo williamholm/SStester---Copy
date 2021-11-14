@@ -50,7 +50,7 @@ int main()
 	//example of using sparse without EM
 	TwoSortsSparse<Comp_ID::POS3D> bo(100000);
 	std::vector<vec3> testVec;
-
+	//
 	timer.startTimer();
 
 	for (int i = 1; i < 10000; ++i)
