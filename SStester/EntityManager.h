@@ -19,26 +19,13 @@ ETs with no overlapping components).
 
 */
 
-/* System:
+/* Multi threading to keep in mind:
 * Must declare what data needs to be accessed and whether its read or r/w
 * Must check if data is sorted as wanted. If data isn't sorted but needs to be it must be re-sorted, this is then r/w.
 * Must ensure that that data isn't in conflict with another system, and if not then update SS state.
 * If read only any deletion/creation of entities must be done by EM in a batch.
 
 
-*/
-
-/*
-Test functions:
-Basic:
-createEntity(id,DataPack<id>)
-moveAllInheritors(id,X) {for all ET<id>inheritors, pos + X}
-deleteAll(id) {deletes all of type id}
-Med:
-2^n entity nums to save memory for small components.
-createBatch(id,amount,std::vector<DataPack<id>> data){creates amount of entities}
-Advanced:
-delete/creating shared components.
 */
 
 
@@ -51,20 +38,6 @@ constexpr auto testfun(std::integer_sequence<int, 0, ints...> seq)
 	return std::move(std::tuple<int, TwoSortsSparse<(Comp_ID)ints>...>());
 }
 
-
-/*
-* Consider these basic examples:
-* 
-* move all projectiles within 30 units of player 10 units back. 
-* 
-* step 1) get player position
-* step 2) read projectile positions
-* step 3) compare positions
-* step 4) update positions
-* 
-* for all NPCs create a wolf at their location
-* 
-*/
 
 /*
 Offset plan: 
@@ -97,7 +70,6 @@ public:
 
 	uint32_t mNextEntityNum;
 	std::vector<uint32_t> mDeletedEntityNum; 
-	std::vector<Entity32Bit> mPendingDeletes; //move this to 2ss?
 	template<Comp_ID component> //what are the ramifications of access like this? seems bad for Multi Threading
 	inline TwoSortsSparse<component>& sparse(){	return std::get<component>(mSparses);}
 
@@ -180,16 +152,16 @@ public:
 	template<Comp_ID component>
 	inline Entity32Bit getEntity(int index) { return std::get<component>(mSparses).getEntity(index); }
 	//return the starting index of ET in sparse<compononent>
-	template<Comp_ID component>
-	inline uint32_t getETBegining(ET_ID entityType) { return std::get<component>(mSparses).groupBegin(entityType); }
+	//template<Comp_ID component>
+	//inline uint32_t getETBegining(ET_ID entityType) { return std::get<component>(mSparses).groupBegin(entityType); }
 	//return the end index of ET in sparse<compononent>
-	template<Comp_ID component>
-	inline uint32_t getETend(ET_ID entityType) { return std::get<component>(mSparses).groupEnd(entityType);}
+	//template<Comp_ID component>
+	//inline uint32_t getETend(ET_ID entityType) { return std::get<component>(mSparses).groupEnd(entityType);}
 	//
 	template<Comp_ID component>
 	inline Bound getBound(ET_ID id) { return std::get<component>(mSparses).getBounds(id); }
-	//bounds of id + its inheritors.
 private:
+	//bounds of id + its inheritors.
 	template<ET_ID id, Comp_ID component, int index>
 	auto inheritorBounds()
 	{
@@ -205,6 +177,7 @@ private:
 		}
 	}
 public:
+	//tuple bounds, not for before c++23 or unless i have sol for iteration over tuple, SO sols don't match what i need for this.
 	template<ET_ID id, Comp_ID component, int index = ET<id>::noOfInheritors>
 	auto getInheritorBounds()
 	{

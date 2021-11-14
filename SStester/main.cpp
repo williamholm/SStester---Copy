@@ -19,7 +19,8 @@ Sparse rules:
 
 4) implementation detail : all internal arrays have to be considered to start at [1] as 0 is reserved for no entity,
 this behaviour could be changed by making reserved value = UINT32_MAX
-
+*/
+/*
 Access:
 
 1) single access via entity
@@ -35,63 +36,18 @@ Sorting:
 
 
 */
-template<std::size_t I = 0, typename FuncT, typename... Tp>
-inline typename std::enable_if<I == sizeof...(Tp), void>::type
-for_each(std::tuple<Tp...>&, FuncT) // Unused arguments are given no names.
-{ }
 
-template<std::size_t I = 0, typename FuncT, typename... Tp>
-inline typename std::enable_if < I < sizeof...(Tp), void>::type
-	for_each(std::tuple<Tp...>& t, FuncT f)
-{
-	f(std::get<I>(t));
-	for_each<I + 1, FuncT, Tp...>(t, f);
-}
-
-template<ET_ID... ids>
-void tester(std::tuple<TaggedBound<ids>...>const& bounds)
-{
-	std::apply
-	(
-		[](TaggedBound<ids>... bound)
-		{
-			((std::cout<<"\n\n bound end: " <<ET<bound.mID>::parents[0]), ...);
-		},
-		bounds
-	);
-}
 int main()
 {
-	typedef float Mass; //any value in this for clarity?
 	Testing::Timer timer;
-
-	ETData<ARROW> dataTest;
-	dataTest.get<VELOCITY>() = 8;
 	EntityManager tes;
 	testSystem(&tes);
-	Entity<ARROW> entityCreationTester;
-	for_each(dataTest.data, [](...) {std::cout << "h"; });
-	auto teri = tes.getInheritorBounds<ARROW, POS3D>();
-	tester(teri);
 
-	//timer.startTimer();
-	//for (int i = 1; i < 10000; ++i)
-	//{
-	//	tes.addEntity(entityCreationTester, dataTest);
-	//}
-	//timer.printTime("\nNew 10000 creation time for arrows: ");
+	constexpr auto parent = getParents(MAGIC_ARROW); //slightly nicer syntax, however not much use in practice as arrays are all same size.
+	constexpr auto inheritor = getInheritors(PHYS_OBJ);
+	constexpr auto component = getComponents(ARROW);
 
-	//timer.startTimer();
-	//for (int i = 1; i < 10000; ++i)
-	//{
-	//	entityCreationTester.addNumber(i);
-	//	tes.deleteEntity(entityCreationTester);
-	//}
-	//timer.printTime("\BareBones 10000 deletion time for arrows: ");
-	constexpr auto tomfoolery = getParents(MAGIC_ARROW);
-	constexpr auto domfoolery = getInheritors(PHYS_OBJ);
-	constexpr auto vomfoolery = getComponents(ARROW);
-
+	//example of using sparse without EM
 	TwoSortsSparse<Comp_ID::POS3D> bo(100000);
 	std::vector<vec3> testVec;
 

@@ -930,6 +930,7 @@ constexpr auto getParents(ET_ID id)
 	//remove blanks first probably. - can't think of a way to non-constexpr access if arrays are different sizes,
 	//so the blanks stay for now.
 //	return parentArray<>::value[id];
+
 	return TempSol(parentArray<>::value[id], getNoOfParents(id));
 }
 constexpr auto getInheritors(ET_ID id)

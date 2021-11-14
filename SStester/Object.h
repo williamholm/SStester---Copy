@@ -23,7 +23,7 @@ public:
 	//
 	inline uint32_t group() const noexcept
 	{
-		return ((mEntity >> entityValueBits) & maxEntityFlag); //don't think maxEntityFlag is needed here?
+		return ((mEntity >> entityValueBits) & maxEntityFlag); //don't think maxEntityFlag is needed here
 	}
 	void addFlags(uint32_t flags) noexcept
 	{
@@ -42,46 +42,7 @@ public:
 	Entity32Bit(const uint32_t entityNumber, const uint32_t flags) : mEntity(entityNumber)
 	{
 		assert(entityNumber < maxEntityNumber);
-		//might be worth doing forwarding here, but copying is cheap anyway.
 		addFlags(flags);
 	}
-};
-
-
-/*
-* METHOD 1 classes
-* 
-* Pros:
-* 
-* Cons:
-*/
-
-class Object : public Entity32Bit
-{
-public:
-	//directly add to sparse set OR add to buffer in a manager then do group creates/deletes
-	//or use add unsorted even for sorted sets and just make sure to sort before reusing a sorted set.
-	void addPosition(int pos) { std::cout << "\n pos"; }
-	void addModel(int model) { std::cout << "\n model"; }
-	Object(uint32_t entityNumber, uint32_t flags, int pos, int model) : Entity32Bit{ entityNumber, flags }
-	{
-		addPosition(pos);
-		addModel(model);
-	}
-	~Object() = default;
-};
-
-class PhysicsObject : public Object
-{
-public:
-	void addOrientation(int ori) { std::cout << "\n ori"; }
-	void addSpeed(int speed) { std::cout << "\n speed"; }
-	
-	PhysicsObject(uint32_t entityNumber, uint32_t flags, int pos, int model, int speed, int ori): Object{entityNumber,flags,pos,model}
-	{	
-		addOrientation(ori);
-		addSpeed(speed);
-	}
-	~PhysicsObject() = default;
 };
 
