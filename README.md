@@ -20,8 +20,11 @@ TwoSortsSparse<Comp_ID> funily enough only really make sense to sort by entity t
 so can ignore sorting in this class. basics of this class is:
 
 -mSprase[entityNumber] gives index for component data that is in mCDS, mEDS[index] gives entityNumber for data that is in mCDS,
+  
 -mCDS/mEDS are sorted by entity type
+  
 -Bounds are the start and end index of a given entity type,
+  
 -the end goal is to get use bounds to iterate through mCDS as it is cache friendly.
 
 
