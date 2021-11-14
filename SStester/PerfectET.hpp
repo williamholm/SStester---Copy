@@ -1,55 +1,7 @@
 #pragma once
 #include <array>
 #include <math.h>
-/*
-Condsider whole system 2 examples:
 
-Simple, plentiful: trees: inherits from object (if moves with wind or something) or is a static object. 
-
-
-Changing, complicated: player, inherits from xyz, contains Perhaps other classes like weapon - might need several ids inside it
-Eg id for weapon 1, id for armour 1,2.
-
-problem 1: how do you contain multiples of the same component without changing 2SS too much?.
-
-*/
-
-/*
-Whole view:
-
-Creating a Component: add type in comp info.
-		   Additions: add ordered/unordered/partial Ordering/Static/Volitaile
-					: create PerfectComp which has sparse with all ETs containing this.
-
-Creating an EntityType info: give what it inherits from - defines what it belongs too:
-						   : what new ETs it contains
-						   : what new components it contains
-						   : with this spit out compositeET (rename) with all ET_IDs, and floating CompIDs
-
-how do I present these ET_IDs?
-
-
-
-Manager:
-
-2SS:
-
-
-example 1: HostilePerson with gun,sword.
-
-create components: Pos,Model,Ori,'Quantity',damage,animation....
-
-create weapon ET         : inherits from object, has damage
-create animated_weapon ET: inherits from animated_object, has damage
-create gun ET			 : inherits from a_w, has bullet ET (damage,quantity):object
-create sword             : inherits from weapon
-HostilePerson			 : inherits from person ET (voicelines, personality):animated_object, Has gun, Sword.
-
-
-example 2: how would player inv work?
-
-
-*/
 
 class vec3
 {
