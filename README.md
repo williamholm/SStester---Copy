@@ -3,6 +3,8 @@ This is an entity component system made using sparse set, where entity types can
 
 requires c++20, runs using visual studion currently:
 
+To use, include EntityManager.h, and fill out CompInfo / ETInfso for each component and entity type you want.
+
 For Mike:
 
 Disregard files EntityFlags, SparseSet, EntityType, EntityTester
