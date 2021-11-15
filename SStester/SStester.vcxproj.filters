@@ -51,6 +51,21 @@
     <ClInclude Include="example.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CosntexprUtility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ETInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CompInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Comp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ET.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

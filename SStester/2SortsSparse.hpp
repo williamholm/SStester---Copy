@@ -1,6 +1,7 @@
 #pragma once
 #include "Object.h"
 #include "PerfectET.hpp"
+#include "Comp.h"
 /* FEATURES (k = no of Entity Types that this component can have, n is size of CDS)
 * 1 indirection, random access via entity number
 * o(1) access for each entity group
