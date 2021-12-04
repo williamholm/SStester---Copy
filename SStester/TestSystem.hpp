@@ -122,34 +122,77 @@ void testSystem(EntityManager* EM)
 
 	//Sol1 of iterating cds while being able to know ET_ID at compile time
 	//need to make constexpr arrays which are ET<id> + ET<id>::inheritors for this to work, not sure if this is final way though
-	timer.startTimer();
-	TS4Loop<2, gTestArrowArr, 0>(EM, playerPos);
-	timer.printTime("TS4Loop: ");
+//	timer.startTimer();
+//	TS4Loop<2, gTestArrowArr, 0>(EM, playerPos);
+//	timer.printTime("TS4Loop: ");
 
 
 	//Sol2 of iterating cds while being able to know ET_ID at compile time
 	//this is better as it is more in line with what will come in c++23,
-	auto tupleBounds = EM->getInheritorBounds<ARROW, POS3D>();
-	timer.startTimer();
-	tupleIterationExample(tupleBounds, EM, playerPos);
-	timer.printTime("TS4Loop: ");
-	EM->deletePending();
+//	auto tupleBounds = EM->getInheritorBounds<ARROW, POS3D>();
+//	timer.startTimer();
+//	tupleIterationExample(tupleBounds, EM, playerPos);
+//	timer.printTime("TS4Loop: ");
+//	timer.startTimer();
+//	EM->deletePending();
+//	timer.printTime("Delete Timer: ");
+
 	std::cout << "Size after deleting: " << EM->sparse<POS3D>().mCDS.size();
 }
 
-//this is unlikely to work for most cases, as ((expresion ),...) isn't that useful for what i need, would need recersion anyway.
-template<ET_ID... ids>
-void testSystem3(std::tuple<TaggedBound<ids>...>const& bounds, EntityManager* EM)
+
+
+void testSystem2(EMTSSS* EM)
 {
-	std::apply
-	(
-		[](TaggedBound<ids>... bound)
+	Testing::Timer timer;
+	ET<PC>::components;
+	ET<ARROW>::components;
+	ET<MAGIC_ARROW>::components;
+	//create player
+	Entity<PC> player;
+	ETData<PC> playerData;
+	playerData.get<POS3D>() = vec3(0, 0, 0); //problem with this method is there is no help with types - need to refer to ET/Comp always.
+
+	EM->addEntity(player, playerData);
+
+	std::vector<Entity<MAGIC_ARROW>> magicArrow(5000);
+	std::vector<Entity<ARROW>> arrow(5000);
+	ETData<ARROW> arrowData; //only need one of each type of arrow data here as arrows are made one at a time.
+	ETData<MAGIC_ARROW> magicArrowData;
+	for (int i = 0; i < 5000; ++i)
+	{
+		arrowData.get<VELOCITY>() = 10;
+		arrowData.get<POS3D>() = vec3(i % 21, i % 34, i % 23); //kinda random enough for this
+
+		magicArrowData.get<VELOCITY>() = 10;
+		magicArrowData.get<POS3D>() = vec3(i % 21, i % 34, i % 23);
+
+		EM->addEntity(arrow[i], arrowData); //realistically should make one which only needs ET_ID, and data, if im keeping TS4Loop style thing
+		EM->addEntity(magicArrow[i], magicArrowData);
+	}
+
+	vec3 playerPos = EM->getComp<POS3D>(player);
+
+	std::array<ET_ID, 2> inhArr = { ARROW,MAGIC_ARROW };
+	timer.startTimer();
+	for (auto entityType : inhArr)
+	{
+		int noOfET = EM->getNoOfET(entityType);
+		for (int i = 1; i < noOfET; ++i)
 		{
-			for (int i = 5; i < 7; ++i)
+			if (playerPos.distance(EM->getComp<POS3D>(entityType,i)) < 5)
 			{
-				((std::cout << "\n\n : " << ET<bound.mID>::parents[0]), ...);
 			}
-		},
-		bounds
-	);
+			else if (playerPos.distance(EM->getComp<POS3D>(entityType,i)) < 10)
+			{
+				//get velocity of entity at index i of mEDS in SS<POS3D> and divide by distance from player.
+				EM->getComp<VELOCITY>(EM->getEntity(entityType,i)) /= playerPos.distance(EM->getComp<POS3D>(entityType,i));
+			}
+		}
+	}
+	timer.printTime("Normal Loop: ");
+
+	std::cout << "Size after deleting: " << EM->mSharedSS.totalSize() << "\n";
 }
+
+

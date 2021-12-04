@@ -6,6 +6,7 @@
 #include "Object.h"
 #include "2SortsSparse.hpp"
 #include "Entity.hpp"
+#include "TypeSortedSS.h"
 #include "ETData.hpp"
 //#include "Object.h"
 
@@ -39,19 +40,6 @@ constexpr auto testfun(std::integer_sequence<int, 0, ints...> seq)
 }
 
 
-/*
-Offset plan: 
-
-each ET has a max no allowed that cumulatively gives an offset value.
-using this info we can reduce the SS drastically - at the cost of more operations depending on how far it is taken.
-
-possible actions:
-
-1) only account for space for ETs containing the sparse sets component - can mabye constexpr solve this in Comp?
-something like; EntityNum - Comp<comp_id>::Offset[ET_id]; can we restrict this to only be used when adding and deleting entities?
-
-not sure it is worth doing this even though there are limited extra operations - will look at memory after test cases.
-*/
 template<ET_ID id>
 class TaggedBound
 {
@@ -62,12 +50,12 @@ public:
 	TaggedBound(const Bound& bound) :end(bound.mEnd), start(bound.mStart) {}
 	~TaggedBound() = default;
 };
+
 class EntityManager
 {
 public:
 	//is there a better way to do this?
 	inline static auto mSparses = testfun(std::make_integer_sequence<int, MAX_COMP_ID>());
-
 	uint32_t mNextEntityNum;
 	std::vector<uint32_t> mDeletedEntityNum; 
 	template<Comp_ID component> //what are the ramifications of access like this? seems bad for Multi Threading
@@ -213,6 +201,105 @@ public:
 	inline ComponentType& operator()(Entity32Bit entity) { return std::get<component>(mSparses)(entity); }
 	EntityManager():mNextEntityNum(1) {};
 	~EntityManager() {};
+};
+
+/*
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+
+*/
+
+//horrible way to initialize tuple in way I want
+template<int... ints>
+struct sparseConstuctor
+{
+	std::tuple<int,TSSS<(Comp_ID)ints>...> tup;
+	sparseConstuctor(SegmentedSS* ss) :tup(0,{ ss,ints }...) {}
+};
+template<int... ints>
+constexpr auto testfun2(std::integer_sequence<int, 0, ints...> seq,SegmentedSS* ss)
+{
+	return std::move(sparseConstuctor<ints...>(ss).tup);
+}
+
+class EMTSSS
+{
+public:
+	inline static SegmentedSS mSharedSS;
+	inline static auto mSparses = testfun2(std::make_integer_sequence<int, MAX_COMP_ID>(),&mSharedSS);
+	uint32_t mNextEntityNum;
+	std::vector<uint32_t> mDeletedEntityNum;
+
+	template<Comp_ID component> //what are the ramifications of access like this? seems bad for Multi Threading
+	inline auto& sparse() { return std::get<component>(mSparses); }
+
+	template<ET_ID id>
+	void addEntity(Entity<id>& entity, ETData<id>& data) //giving up on ETData as moving from ETData seems inefficient.
+	{
+		if (mDeletedEntityNum.size() == 0) //this if statement isn't great - should be a way to predict state of deleted entities
+		{
+			assert(mNextEntityNum < maxEntityNumber);
+			entity.addNumber(mNextEntityNum++);
+			//std::cout << "\n entity num: " << entity.number() << "    next: " << mNextEntityNum << "     entity group: " << entity.group();
+		}
+		else
+		{
+			entity.addNumber(*mDeletedEntityNum.end());
+			mDeletedEntityNum.pop_back();
+		}
+		mSharedSS.addEntity(entity);
+		addData(entity, data);
+	}
+
+	template<ET_ID id, int index = ET<id>::noOfComponents - 1>
+	void addData(Entity32Bit entity, ETData<id>& data)//can remove entity and just add directly to CDS after chaning 2SS - test speed.
+	{
+		//data.get was causing stack overflow here. no idea why
+		std::get<ET<id>::components[index]>(mSparses).addComponent(entity, data.get<ET<id>::components[index]>());
+		//	std::get<ET<id>::components[index]>(mSparses).addComponent(entity, std::get<index>(data.data));
+		if constexpr (index != 0)
+		{
+			addData<id, index - 1>(entity, data);
+		}
+	}
+
+	template<ET_ID id>
+	void deleteEntity(Entity<id>& entity)
+	{
+		removeData<id>(entity);
+		mSharedSS.deleteEntity(entity);
+		mDeletedEntityNum.push_back(entity.number());
+	}
+	template<ET_ID id, int index = ET<id>::noOfComponents - 1>
+	void removeData(Entity32Bit entity)//can remove entity and just add directly to CDS after chaning 2SS - test speed.
+	{
+		std::get<ET<id>::components[index]>(mSparses).deleteComponent(entity);
+		if constexpr (index != 0)
+		{
+			removeData<id, index - 1>(entity);
+		}
+	}
+
+
+	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
+	inline std::vector<ReturnType>& getETComps(ET_ID id) { return std::get<component>(mSparses).getETcomps(id); }
+	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
+	inline ReturnType& getComp(Entity32Bit entity) { return std::get<component>(mSparses).getComponent(entity); }
+	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
+	inline ReturnType& getComp(ET_ID eType, uint32_t index) { return std::get<component>(mSparses).getComponent(eType,index); }
+
+	inline Entity32Bit getEntity(uint32_t group, uint32_t index) { return mSharedSS.getEntity(group,index); }
+	inline uint32_t getNoOfET(ET_ID id) { return mSharedSS.size(id); }
+
+	EMTSSS() :mNextEntityNum(1) {};
+	~EMTSSS() {};
 };
 
 

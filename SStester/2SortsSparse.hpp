@@ -82,6 +82,8 @@ public:
 	{
 		assert(entityInSet(entity));
 		swapToBack(mSparse[entity.number()]);
+		//mCDS.erase(mCDS.begin() + mSparse[entity.number()]); //takes 20x as long for 66 deletes at 10000 size()
+		//mEDS.erase(mEDS.begin() + mSparse[entity.number()]);
 
 		mCDS.pop_back();
 		mEDS.pop_back();

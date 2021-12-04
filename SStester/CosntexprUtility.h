@@ -1,8 +1,5 @@
 #pragma once
-
 #include<array>
-
-
 
 //returns true if x is in given array 
 template<class T, int N>
