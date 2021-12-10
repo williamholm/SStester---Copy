@@ -38,6 +38,19 @@ constexpr auto testfun(std::integer_sequence<int, 0, ints...> seq)
 	//there is an int so std::get<Comp_ID> is correctly allinged as ints is has values 1-MAX_COMP_ID
 	return std::move(std::tuple<int, TwoSortsSparse<(Comp_ID)ints>...>());
 }
+typedef decltype(testfun(std::make_integer_sequence<int, MAX_COMP_ID>())) BasicSSTuple;
+
+//create tuple types for EM
+template<int... ints>
+constexpr auto testfun3(std::integer_sequence<int, 0, ints...> seq)
+{
+
+	return std::tuple<int, TypeSortedSS<(Comp_ID)ints>...>();
+}
+
+typedef decltype(testfun3(std::make_integer_sequence<int, MAX_COMP_ID>())) TypeSortedSSTuple;
+
+
 
 
 template<ET_ID id>
@@ -55,7 +68,8 @@ class EntityManager
 {
 public:
 	//is there a better way to do this?
-	inline static auto mSparses = testfun(std::make_integer_sequence<int, MAX_COMP_ID>());
+	//inline static auto mSparses = testfun(std::make_integer_sequence<int, MAX_COMP_ID>());
+	BasicSSTuple mSparses;
 	uint32_t mNextEntityNum;
 	std::vector<uint32_t> mDeletedEntityNum; 
 	template<Comp_ID component> //what are the ramifications of access like this? seems bad for Multi Threading
@@ -220,7 +234,7 @@ public:
 template<int... ints>
 struct sparseConstuctor
 {
-	std::tuple<int,TSSS<(Comp_ID)ints>...> tup;
+	std::tuple<int,TypeSortedSS<(Comp_ID)ints>...> tup;
 	sparseConstuctor(SegmentedSS* ss) :tup(0,{ ss,ints }...) {}
 };
 template<int... ints>
@@ -232,22 +246,22 @@ constexpr auto testfun2(std::integer_sequence<int, 0, ints...> seq,SegmentedSS* 
 class EMTSSS
 {
 public:
-	inline static SegmentedSS mSharedSS;
-	inline static auto mSparses = testfun2(std::make_integer_sequence<int, MAX_COMP_ID>(),&mSharedSS);
+	//inline static SegmentedSS mSharedSS;
+	SegmentedSS mSharedSS;
+	TypeSortedSSTuple mSparses;
+	//inline static auto mSparses = testfun2(std::make_integer_sequence<int, MAX_COMP_ID>(),&mSharedSS);
 	uint32_t mNextEntityNum;
 	std::vector<uint32_t> mDeletedEntityNum;
 
-	template<Comp_ID component> //what are the ramifications of access like this? seems bad for Multi Threading
-	inline auto& sparse() { return std::get<component>(mSparses); }
-
+	template<Comp_ID component>
+	inline auto& sparse() { return std::get<component>(mSparses); } //for testing
 	template<ET_ID id>
-	void addEntity(Entity<id>& entity, ETData<id>& data) //giving up on ETData as moving from ETData seems inefficient.
+	void addEntity(Entity<id>& entity, ETData<id>& data)
 	{
 		if (mDeletedEntityNum.size() == 0) //this if statement isn't great - should be a way to predict state of deleted entities
 		{
 			assert(mNextEntityNum < maxEntityNumber);
 			entity.addNumber(mNextEntityNum++);
-			//std::cout << "\n entity num: " << entity.number() << "    next: " << mNextEntityNum << "     entity group: " << entity.group();
 		}
 		else
 		{
@@ -298,7 +312,10 @@ public:
 	inline Entity32Bit getEntity(uint32_t group, uint32_t index) { return mSharedSS.getEntity(group,index); }
 	inline uint32_t getNoOfET(ET_ID id) { return mSharedSS.size(id); }
 
-	EMTSSS() :mNextEntityNum(1) {};
+	EMTSSS() :mNextEntityNum(1), mSharedSS()
+	{
+		mSparses = testfun2(std::make_integer_sequence<int, MAX_COMP_ID>(), &mSharedSS);
+	};
 	~EMTSSS() {};
 };
 

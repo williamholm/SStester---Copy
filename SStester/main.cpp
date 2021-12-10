@@ -39,16 +39,15 @@ Sorting:
 
 int main()
 {
-	EMTSSS emt;
-	testSystem2(&emt);
 	Testing::Timer timer;
+//	EMTSSS emt;
 	EntityManager tes;
-
 	testSystem(&tes);
+//	testSystem2(&emt);
 //	for (int i = 3; i < 10000; i += 2)
 //	{
-//		std::cout << "\n emt: " << emt.getComp<POS3D>(Entity32Bit(i, MAGIC_ARROW)).x << "  tes: " 
-//			<< tes.getComponentData<POS3D>(Entity32Bit(i,MAGIC_ARROW)).x <<"\n";
+//		std::cout << "\n emt: " << emt.getComp<VELOCITY>(Entity32Bit(i, MAGIC_ARROW)) << "  tes: " 
+//			<< tes.getComponentData<VELOCITY>(Entity32Bit(i,MAGIC_ARROW)) <<"\n";
 //	}
 	constexpr auto parent = getParents(MAGIC_ARROW); //slightly nicer syntax, however not much use in practice as arrays are all same size.
 	constexpr auto inheritor = getInheritors(PHYS_OBJ);

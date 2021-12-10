@@ -31,6 +31,17 @@ Improve Value sort -- work on typeSort2 -- Look into merge sorting. Quick sort i
 
 */
 
+
+/*
+Can move to only one SS for non sorted components maybe but prob not much advantage over TSSS:
+
+have new entity placed as such SS[entity.number()] = amount of entity.group() + 1, then each mCDS is accessed by adding an offset equal too
+the sum of all the number of all entities in the groups before it in mCDS, i.e, bounds.start+offset.
+
+however deleting an entity which has a group before will screw this up unless stable delete is used, which requires n swaps everytime.
+the same thing happens with insert.
+
+*/
 struct Bound
 {
 	uint32_t mStart;

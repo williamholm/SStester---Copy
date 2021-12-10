@@ -58,3 +58,4 @@ struct Comp
 	//offsets for SS so they can be condensed - this doesn't need to be implemented for my uses i think.
 	static constexpr std::array<uint32_t, ET_ID::MAX_ET_ID> offsets = {};
 };
+
