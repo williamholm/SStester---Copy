@@ -119,6 +119,13 @@ public:
 		mCDS[entity.group()].pop_back();
 	}
 
+	void shrink_to_fit()
+	{
+		for (int i = 1; i < MAX_ET_ID; ++i)
+		{
+			mCDS[i].shrink_to_fit();
+		}
+	}
 	void print()
 	{
 		for (int i = 1; i < MAX_ET_ID; ++i)

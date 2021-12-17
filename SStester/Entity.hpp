@@ -11,5 +11,7 @@ public:
 		
 	}
 	Entity(uint32_t entityNum) : Entity32Bit{ entityNum,id } {}
+	Entity(Entity32Bit entity32bit) : Entity32Bit{ entity32bit } {}
+
 	~Entity() {}
 };

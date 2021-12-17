@@ -156,6 +156,25 @@ public:
 		}
 		return;
 	}
+
+
+	template<Comp_ID id>
+	void shrink()
+	{
+		if constexpr (id > 1)
+		{
+			shrink<(Comp_ID)(id - 1)>();
+		}
+
+		std::get<id>(mSparses).shrink_to_fit();
+
+	}
+	void shrink_to_fit()
+	{
+		shrink<(Comp_ID)(MAX_COMP_ID - 1)>();
+	}
+
+
 	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
 	inline ReturnType& getComponentData(Entity32Bit entity) { return std::get<component>(mSparses)(entity);	}
 	//returns data given index of CDS.
@@ -301,7 +320,23 @@ public:
 		}
 	}
 
+	template<Comp_ID id>
+	void shrink()
+	{
+		if constexpr (id > 1)
+		{
+			shrink<(Comp_ID)(id - 1)>();
+		}
 
+		std::get<id>(mSparses).shrink_to_fit();
+
+	}
+	void shrink_to_fit()
+	{
+		shrink<(Comp_ID)(MAX_COMP_ID-1)>();
+	}
+
+	inline int size() { return mSharedSS.totalSize(); }
 	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
 	inline std::vector<ReturnType>& getETComps(ET_ID id) { return std::get<component>(mSparses).getETcomps(id); }
 	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>

@@ -72,6 +72,9 @@
     <ClInclude Include="FlexiVec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TestUtility.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

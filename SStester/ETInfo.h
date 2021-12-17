@@ -51,6 +51,9 @@ struct ETInfo
 	//what new components are there. 
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = {};
+
+	//for logging
+	static constexpr char const* name = "";
 };
 
 template<>
@@ -67,6 +70,9 @@ struct ETInfo<ET_ID::OBJ>
 	//what new components are there. 
 	static constexpr int noOfNewComponents = 2;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = { Comp_ID::STATE, Comp_ID::POS3D };
+
+	//for logging
+	static constexpr char const*  name = "OBJ";
 };
 
 template<>
@@ -84,6 +90,8 @@ struct ETInfo<ET_ID::STATIC_OBJ>
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = { };
 
+	//for logging
+	static constexpr char const* name = "STATIC_OBJ";
 };
 
 template<>
@@ -101,6 +109,8 @@ struct ETInfo<ET_ID::PLANT>
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = { };
 
+	//for logging
+	static constexpr char const* name = "PLANT";
 };
 
 template<>
@@ -118,6 +128,8 @@ struct ETInfo<ET_ID::PHYS_OBJ>
 	static constexpr int noOfNewComponents = 2;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = { Comp_ID::VELOCITY, Comp_ID::ORIENTATION };
 
+	//for logging
+	static constexpr char const* name = "PHYS_OBJ";
 };
 
 template<>
@@ -135,6 +147,8 @@ struct ETInfo<ET_ID::CREATURE>
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = {};
 
+	//for logging
+	static constexpr char const* name = "CREATURE";
 };
 
 template<>
@@ -152,6 +166,8 @@ struct ETInfo<ET_ID::NPC>
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = {};
 
+	//for logging
+	static constexpr char const* name = "NPC";
 };
 
 template<>
@@ -169,6 +185,8 @@ struct ETInfo<ET_ID::PC>
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = {};
 
+	//for logging
+	static constexpr char const* name = "PC";
 };
 
 template<>
@@ -186,6 +204,8 @@ struct ETInfo<ET_ID::MONSTER>
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = {};
 
+	//for logging
+	static constexpr char const* name = "MONSTER";
 };
 
 template<>
@@ -203,6 +223,8 @@ struct ETInfo<ET_ID::WOLF>
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = {};
 
+	//for logging
+	static constexpr char const* name = "WOLF";
 };
 template<>
 struct ETInfo<ET_ID::TALKING_WOLF>
@@ -219,6 +241,8 @@ struct ETInfo<ET_ID::TALKING_WOLF>
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = {};
 
+	//for logging
+	static constexpr char const* name = "TALKING_WOLF";
 };
 
 template<>
@@ -236,6 +260,8 @@ struct ETInfo<ET_ID::PROJECTILE>
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = {};
 
+	//for logging
+	static constexpr char const* name = "PROJECTILE";
 };
 
 template<>
@@ -253,6 +279,8 @@ struct ETInfo<ET_ID::ARROW>
 	static constexpr int noOfNewComponents = 0;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = {};
 
+	//for logging
+	static constexpr char const* name = "ARROW";
 };
 
 template<>
@@ -270,6 +298,8 @@ struct ETInfo<ET_ID::MAGIC>
 	static constexpr int noOfNewComponents = 1;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = { Comp_ID::PERMA_FORCE };
 
+	//for logging
+	static constexpr char const* name = "MAGIC";
 };
 template<>
 struct ETInfo<ET_ID::MAGIC_ARROW>
@@ -286,5 +316,7 @@ struct ETInfo<ET_ID::MAGIC_ARROW>
 	static constexpr int noOfNewComponents = 1;
 	static constexpr std::array<Comp_ID, noOfNewComponents> newComponents = { Comp_ID::MASS };
 
+	//for logging
+	static constexpr char const* name = "MAGIC_ARROW";
 };
 #pragma endregion

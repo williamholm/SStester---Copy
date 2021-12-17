@@ -19,7 +19,7 @@ namespace Testing
 		void printTime(const std::string& message) noexcept
 		{
 			long long timeTaken = timeElapsed();
-			std::cout << message.c_str() << timeTaken << " micro seconds \n";
+			std::cout << message.c_str() << timeTaken << " micro seconds";
 		}
 		//returns time since startTimer called in micro seconds.
 		long long timeElapsed() noexcept

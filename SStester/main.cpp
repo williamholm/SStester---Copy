@@ -40,18 +40,17 @@ Sorting:
 int main()
 {
 	Testing::Timer timer;
-//	EMTSSS emt;
-	EntityManager tes;
-	testSystem(&tes);
-//	testSystem2(&emt);
-//	for (int i = 3; i < 10000; i += 2)
-//	{
-//		std::cout << "\n emt: " << emt.getComp<VELOCITY>(Entity32Bit(i, MAGIC_ARROW)) << "  tes: " 
-//			<< tes.getComponentData<VELOCITY>(Entity32Bit(i,MAGIC_ARROW)) <<"\n";
-//	}
+	//EMTSSS emt;
+	//EntityManager tes;
+	EntityTester tester(1000000);
+	//tester.messUpCache();
+	//testSystem(&tes);
+	//testSystem2(&emt);
+	tester.deleteEntities(500000);
+	tester.addEntities(500000);
 	constexpr auto parent = getParents(MAGIC_ARROW); //slightly nicer syntax, however not much use in practice as arrays are all same size.
 	constexpr auto inheritor = getInheritors(PHYS_OBJ);
-	constexpr auto component = getComponents(ARROW);
+	constexpr auto component = getComponents(TALKING_WOLF);
 
 //	static std::array<uint32_t, maxEntityNumber> sparse;
 //	TypeSortedSS<POS3D> posSS(&sparse);

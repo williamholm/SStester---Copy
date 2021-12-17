@@ -102,11 +102,12 @@ constexpr auto removeInstancesOf(const T& x, const std::array<T, size>& arr)
 	return newArray;
 }
 
-//counts the number of unique ids in given array
-template<int N>
-constexpr int noOfUniqueET_IDs(const std::array<ET_ID, N>& arr)
+//counts the number of unique ids in given array, assumes array < MAX_ET_ID, can choose better value later
+template<typename T, int N>
+constexpr int noOfUniqueET_IDs(const std::array<T, N>& arr)
 {
-	std::array<bool, ET_ID::MAX_ET_ID> isDuplicate = {};//initialized to false (not sure if this is always standard)
+	//MAX_ET_ID rather than N as compiler heap space is messed up otherwise. Can change to another constant as needed.
+	std::array<bool, MAX_ET_ID> isDuplicate = {};//initialized to false (not sure if this is always standard)
 	int noOfUniqueETs = 0;
 	for (int i = 0; i < N; ++i)
 	{
@@ -119,11 +120,11 @@ constexpr int noOfUniqueET_IDs(const std::array<ET_ID, N>& arr)
 	return noOfUniqueETs;
 }
 //returns array of all unique ids in given array
-template< int M, int N>
-constexpr auto uniqueET_IDs(const std::array<ET_ID, N>& arr)
+template<int M, typename T, int N>
+constexpr auto uniqueET_IDs(const std::array<T, N>& arr)
 {
 	std::array<bool, ET_ID::MAX_ET_ID> isDuplicate = {};//initialized to false (not sure if this is always standard)
-	std::array<ET_ID, M> temp = {};
+	std::array<T, M> temp = {};
 	int noOfUniqueETs = 0;
 	if (M != 0)
 	{

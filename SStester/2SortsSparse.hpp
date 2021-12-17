@@ -319,6 +319,12 @@ public:
 	inline Entity32Bit getEntity(const uint32_t index) { return mEDS[index]; }
 	//returns indexs of CDS and EDS so that they can be accessed without going back into SparseSet
 	inline uint32_t getIndex(const Entity32Bit entity) { return mSparse[entity.number()]; }
+
+	inline void shrink_to_fit()
+	{
+		mCDS.shrink_to_fit();
+		mEDS.shrink_to_fit();
+	}
 	//get component via entity number
 	inline DataType& operator() (const Entity32Bit entity) noexcept
 	{

@@ -229,10 +229,14 @@ struct ET
 	static constexpr int noOfParents = noOfUniqueET_IDs(getParents<id>::value);
 	static constexpr std::array<ET_ID, noOfParents> parents = uniqueET_IDs<noOfParents>(getParents<id>::value);
 	//what new components are there. 
-	static constexpr int noOfComponents = getNoOfComponents<id>::value + ETInfo<id>::noOfNewComponents;
-	static constexpr std::array<Comp_ID, noOfComponents> components = concatinate(getComponents<id>::value, ETInfo<id>::newComponents);
+	//static constexpr int noOfComponents = getNoOfComponents<id>::value + ETInfo<id>::noOfNewComponents;
+	//static constexpr std::array<Comp_ID, noOfComponents> components = concatinate(getComponents<id>::value, ETInfo<id>::newComponents);
+	//
+	static constexpr int noOfComponents = noOfUniqueET_IDs(concatinate(getComponents<id>::value, ETInfo<id>::newComponents));
+	static constexpr std::array<Comp_ID, noOfComponents> components =
+		uniqueET_IDs<noOfComponents>(concatinate(getComponents<id>::value, ETInfo<id>::newComponents));
 	//Sparse for getting order of components - used in ETData for ease of use
 	static constexpr std::array<int, MAX_COMP_ID> sparse = CompSparse(components);
-	//
-//	static constexpr uint32_t offset = ETinfo<id>::maxNoOfEntity; //need to do this cumulatively 
+
+	static constexpr char const* name = ETInfo<id>::name;
 };

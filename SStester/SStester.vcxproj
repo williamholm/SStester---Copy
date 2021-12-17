@@ -167,6 +167,7 @@
     <ClInclude Include="PerfectET.hpp" />
     <ClInclude Include="SparseSet.h" />
     <ClInclude Include="TestSystem.hpp" />
+    <ClInclude Include="TestUtility.hpp" />
     <ClInclude Include="TypeSortedSS.h" />
   </ItemGroup>
   <ItemGroup>
