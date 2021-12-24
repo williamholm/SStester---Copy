@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdint>
 #include <type_traits>
+#include <source_location>
 #include "EntityTester.h"
 #include "EntityManager.h"
 #include "2SortsSparse.hpp"
@@ -48,9 +49,14 @@ int main()
 	//testSystem2(&emt);
 	tester.deleteEntities(500000);
 	tester.addEntities(500000);
+	for (int i = 0; i < 50; ++i)
+	{
+		tester.unorderedAccess();
+	}
 	constexpr auto parent = getParents(MAGIC_ARROW); //slightly nicer syntax, however not much use in practice as arrays are all same size.
 	constexpr auto inheritor = getInheritors(PHYS_OBJ);
 	constexpr auto component = getComponents(TALKING_WOLF);
+	std::source_location sourceLoc;
 
 //	static std::array<uint32_t, maxEntityNumber> sparse;
 //	TypeSortedSS<POS3D> posSS(&sparse);

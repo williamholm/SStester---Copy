@@ -71,7 +71,7 @@ public:
 	{
 		for (int i = 1; i < MAX_ET_ID; ++i)
 		{
-			int size = mEDS[i].size();
+			const int size = mEDS[i].size();
 			for (int j = 0; j < size; ++j)
 			{
 				std::cout << "\nGroup: " << i << "Index: " << j << "Entity Number: " << mEDS[i][j].number();
@@ -79,7 +79,7 @@ public:
 		}
 	}
 
-	SegmentedSS():mSparse()
+	SegmentedSS() noexcept :mSparse()
 	{
 		//for (int i = 0; i < MAX_ET_ID; ++i)
 		//{
@@ -91,7 +91,6 @@ public:
 			mSparse[i] = _UI32_MAX;
 		}
 	}
-	~SegmentedSS() = default;
 };
 
 
@@ -141,16 +140,12 @@ public:
 	inline CompType& getComponent(Entity32Bit entity) { return mCDS[entity.group()][mpSS->getIndex(entity)]; }
 	inline CompType& getComponent(uint32_t eType, uint32_t index) { return mCDS[eType][index]; }
 
-	inline Entity32Bit getEntity(uint32_t eType, uint32_t index) { return mpSS->getEntity(eType, index); }
-	TypeSortedSS(SegmentedSS* sparseSet,int) :mpSS(sparseSet)
+	inline Entity32Bit getEntity(uint32_t eType, uint32_t index)  { return mpSS->getEntity(eType, index); }
+	TypeSortedSS(SegmentedSS* sparseSet,int) noexcept : mpSS(sparseSet)
 	{
-		//for (int i = 0; i < MAX_ET_ID; ++i)
-		//{
-		//	  mCDS[i].emplace_back(CompType()); //do this for if I want 0 to be no entity
-		//}
+
 	}
 	TypeSortedSS() {}
-	~TypeSortedSS() = default;
 
 };
 

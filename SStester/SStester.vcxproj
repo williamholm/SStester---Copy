@@ -80,11 +80,13 @@
     <LinkIncremental>true</LinkIncremental>
     <SourcePath>C:\Users\willi\source\repos\williamholm\SStester---Copy\SStester\src;$(SourcePath)</SourcePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <SourcePath>C:\Users\willi\source\repos\williamholm\SStester---Copy\SStester\src;$(SourcePath)</SourcePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

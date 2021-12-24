@@ -37,14 +37,15 @@ struct ETData
 	template<Comp_ID comp_id>
 	constexpr Comp<comp_id>::type& get()
 	{
-		assert(ET<id>::sparse[comp_id] != Comp_ID::MAX_COMP_ID);
-		return static_cast<Comp<comp_id>::type&>(std::get<ET<id>::sparse[comp_id]>(data));
+		static_assert(ET<id>::sparse[comp_id] != Comp_ID::MAX_COMP_ID);
+		//return static_cast<Comp<comp_id>::type&>(std::get<ET<id>::sparse[comp_id]>(data));
+		return std::get<ET<id>::sparse[comp_id]>(data);
 	
 	}
 	template<Comp_ID comp_id>
 	constexpr Comp<comp_id>::type&& move()//is move here ok or bad? not clear when using std::get on a member of class.
 	{
-		assert(ET<id>::sparse[comp_id] != Comp_ID::MAX_COMP_ID);
+		static_assert(ET<id>::sparse[comp_id] != Comp_ID::MAX_COMP_ID);
 		return std::move(std::get<ET<id>::sparse[comp_id]>(data));
 	}
 

@@ -864,7 +864,7 @@ struct compArray<maxID, maxID>
 	static constexpr auto value = std::array<std::array<Comp_ID, (int)Comp_ID::MAX_COMP_ID>, 1>();
 };
 
-constexpr auto getNoOfParents(ET_ID id)
+static constexpr auto getNoOfParents(ET_ID id)
 {
 	return noOfParentArray<>::value[id];
 }
@@ -877,7 +877,7 @@ public:
 	constexpr TempSol(const std::array<T, size>& arr, int lastValidValue) : data(arr),end(lastValidValue) {}
 };
 
-constexpr auto getParents(ET_ID id)
+static constexpr auto getParents(ET_ID id)
 {
 	//remove blanks first probably. - can't think of a way to non-constexpr access if arrays are different sizes,
 	//so the blanks stay for now.
@@ -885,12 +885,12 @@ constexpr auto getParents(ET_ID id)
 
 	return TempSol(parentArray<>::value[id], getNoOfParents(id));
 }
-constexpr auto getInheritors(ET_ID id)
+static constexpr auto getInheritors(ET_ID id)
 {
 	
 	return inheritorArray<>::value[id];
 }
-constexpr auto getComponents(ET_ID id)
+static constexpr auto getComponents(ET_ID id)
 {
 	return compArray<>::value[id];
 }

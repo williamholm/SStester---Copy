@@ -12,7 +12,7 @@ EntityTester::EntityTester(uint32_t noOfEntities) : mBasicEM(), mTypeSortedEM(),
 EntityTester::~EntityTester()
 {
 }
-auto EntityTester::messUpCache()
+_NODISCARD auto EntityTester::messUpCache()
 {
 	static constexpr int size = 100000; //400000bytes;
 	std::vector<BigData<size>> data;
@@ -78,7 +78,7 @@ void EntityTester::addEntities(uint32_t noOfEntities)
 	addEntities<WOLF>(5);
 	addEntities<TALKING_WOLF>(1); //in actual program want to avoid this, especially for TSSS, not so much for basicSS.
 	addEntities<PC>(1);
-	int r = (noOfEntities / 60.0f) - 7;
+	const int r = (noOfEntities / 60.0f) - 7;
 	if (r >= 0)
 	{
 		addEntities<CREATURE>(r);
@@ -92,8 +92,8 @@ void EntityTester::addEntities(uint32_t noOfEntities)
 template<ET_ID id>
 std::vector<Entity<id>> EntityTester::getSpreadOutEntities(uint32_t amount)
 {
-	int noOfEntities = mTypeSortedEM.getNoOfET(id);
-	int gap = noOfEntities / amount;
+	const int noOfEntities = mTypeSortedEM.getNoOfET(id);
+	const int gap = noOfEntities / amount;
 	assert(amount < noOfEntities);
 	std::vector<Entity<id>> temp;
 	temp.reserve(amount);
@@ -127,9 +127,9 @@ void EntityTester::deleteEntities(uint32_t amount)
 	mTimer.printTime("\tTypeSortedEM: ");
 }
 
-void EntityTester::deleteEntities(uint32_t noOfEntities)
+void EntityTester::deleteEntities(const uint32_t noOfEntities)
 {
-	assert(noOfEntities > 1000 && noOfEntites < mTypeSortedEM.size());
+	assert(noOfEntities > 1000 &&  noOfEntities < mTypeSortedEM.size());
 	deleteEntities<OBJ>(noOfEntities / 5);
 	deleteEntities<MAGIC>(noOfEntities / 6);
 	deleteEntities<PHYS_OBJ>(noOfEntities / 6); //32/60
@@ -142,7 +142,7 @@ void EntityTester::deleteEntities(uint32_t noOfEntities)
 	deleteEntities<WOLF>(5);
 	deleteEntities<TALKING_WOLF>(1); //in actual program want to avoid this, especially for TSSS, not so much for basicSS.
 	deleteEntities<PC>(1);
-	int r = (noOfEntities / 60.0f) - 7;
+	const int r = (noOfEntities / 60.0f) - 7;
 	if (r >= 0)
 	{
 		deleteEntities<CREATURE>(r);
@@ -156,7 +156,7 @@ void EntityTester::deleteEntities(uint32_t noOfEntities)
 
 void EntityTester::accessAllETComp()
 {
-
+	
 }
 
 void EntityTester::accessByComp()
@@ -166,5 +166,29 @@ void EntityTester::accessByComp()
 
 void EntityTester::unorderedAccess()
 {
+	messUpCache();
+	const int noOfEntities = mBasicEM.size<POS3D>();
+	std::cout << "\nUpdating positions of " << noOfEntities << " entities\n";
+	
+	mTimer.startTimer();
+	for (int i = 1;i<noOfEntities;++i)
+	{
+		mBasicEM.sparse<POS3D>()[i].x = 5;
+		mBasicEM.sparse<POS3D>()[i].y = 5;
+		mBasicEM.sparse<POS3D>()[i].z = 5;
+	}
+	mTimer.printTime("\nTime taken for unordered access of basicSS: ");
+	mTimer.startTimer();
+	for (const auto id : Comp<POS3D>::ETsWithComp)
+	{
+		const int size = mTypeSortedEM.getNoOfET(id);
+		for (int i = 0; i < size; ++i)
+		{
+			mTypeSortedEM.getComp<POS3D>(id, i).x = 5;
+			mTypeSortedEM.getComp<POS3D>(id, i).y = 5;
+			mTypeSortedEM.getComp<POS3D>(id, i).z = 5;
+		}
+	}
+	mTimer.printTime("\nTime taken for unordered access of TSSS: ");
 
 }

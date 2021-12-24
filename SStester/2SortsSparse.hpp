@@ -132,7 +132,7 @@ public:
 		}
 	}
 	//Inserts component into its ET group - requires max Component<mID>::numberOfETs * 2 swaps.
-	void quickInsert(int index)
+	void quickInsert(int index) noexcept
 	{
 		for (int i = component::sparse[mEDS[index].group()] + 1; i <= mNoOfBounds; ++i)
 		{
@@ -319,7 +319,7 @@ public:
 	inline Entity32Bit getEntity(const uint32_t index) { return mEDS[index]; }
 	//returns indexs of CDS and EDS so that they can be accessed without going back into SparseSet
 	inline uint32_t getIndex(const Entity32Bit entity) { return mSparse[entity.number()]; }
-
+	inline int size() { return mCDS.size(); }
 	inline void shrink_to_fit()
 	{
 		mCDS.shrink_to_fit();

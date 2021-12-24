@@ -174,7 +174,11 @@ public:
 		shrink<(Comp_ID)(MAX_COMP_ID - 1)>();
 	}
 
-
+	template<Comp_ID component>
+	int size()
+	{
+		return std::get<component>(mSparses).size();
+	}
 	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
 	inline ReturnType& getComponentData(Entity32Bit entity) { return std::get<component>(mSparses)(entity);	}
 	//returns data given index of CDS.
@@ -232,8 +236,7 @@ public:
 
 	template<Comp_ID component, typename ComponentType = typename Comp<component>::type>
 	inline ComponentType& operator()(Entity32Bit entity) { return std::get<component>(mSparses)(entity); }
-	EntityManager():mNextEntityNum(1) {};
-	~EntityManager() {};
+	EntityManager() noexcept :mNextEntityNum(1) {};
 };
 
 /*
@@ -337,21 +340,23 @@ public:
 	}
 
 	inline int size() { return mSharedSS.totalSize(); }
+
 	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
 	inline std::vector<ReturnType>& getETComps(ET_ID id) { return std::get<component>(mSparses).getETcomps(id); }
+
 	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
 	inline ReturnType& getComp(Entity32Bit entity) { return std::get<component>(mSparses).getComponent(entity); }
+
 	template<Comp_ID component, typename ReturnType = typename Comp<component>::type>
 	inline ReturnType& getComp(ET_ID eType, uint32_t index) { return std::get<component>(mSparses).getComponent(eType,index); }
 
 	inline Entity32Bit getEntity(uint32_t group, uint32_t index) { return mSharedSS.getEntity(group,index); }
 	inline uint32_t getNoOfET(ET_ID id) { return mSharedSS.size(id); }
 
-	EMTSSS() :mNextEntityNum(1), mSharedSS()
+	EMTSSS() noexcept :mNextEntityNum(1), mSharedSS()
 	{
 		mSparses = testfun2(std::make_integer_sequence<int, MAX_COMP_ID>(), &mSharedSS);
 	};
-	~EMTSSS() {};
 };
 
 

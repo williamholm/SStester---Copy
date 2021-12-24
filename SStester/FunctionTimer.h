@@ -14,11 +14,11 @@ namespace Testing
 		Timer() = default;
 		~Timer() = default;
 
-		void startTimer() { mStartTime = std::chrono::steady_clock::now(); }
+		void startTimer() noexcept { mStartTime = std::chrono::steady_clock::now(); }
 
-		void printTime(const std::string& message) noexcept
+		void printTime(const std::string& message)
 		{
-			long long timeTaken = timeElapsed();
+			const long long timeTaken = timeElapsed();
 			std::cout << message.c_str() << timeTaken << " micro seconds";
 		}
 		//returns time since startTimer called in micro seconds.

@@ -36,10 +36,9 @@ public:
 		assert(entityNum <= maxEntityNumber);
 		mEntity = entityNum + (this->group() << entityValueBits); //might not be fastest way should be fine though.
 	}
-	Entity32Bit() :mEntity(0) {}
-	~Entity32Bit() = default;
+	Entity32Bit() noexcept :mEntity(0) {}
 
-	Entity32Bit(const uint32_t entityNumber, const uint32_t flags) : mEntity(entityNumber)
+	Entity32Bit(const uint32_t entityNumber, const uint32_t flags) noexcept : mEntity(entityNumber)
 	{
 		assert(entityNumber < maxEntityNumber);
 		addFlags(flags);

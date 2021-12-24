@@ -28,20 +28,38 @@ struct ComponentArray<comp_id, 0>
 
 //MAX_ET_ID+1 for now for formatting, might be changed later.
 template<Comp_ID id>
-constexpr std::array<int, ET_ID::MAX_ET_ID + 1> getCompSparse()
+constexpr std::array<ET_ID, ET_ID::MAX_ET_ID + 1> getCompSparse()
 {
 	int counter = 0;
-	std::array<int, ET_ID::MAX_ET_ID + 1> sparse = {};
+	std::array<ET_ID, ET_ID::MAX_ET_ID + 1> sparse = {};
 	for (int i = 0; i < ET_ID::MAX_ET_ID; ++i)
 	{
 		if (ComponentArray<id>::value[i])
 		{
-			sparse[i] = ++counter;
+			sparse[i] = (ET_ID)++counter;
 		}
 	}
 	//last element of array is no of entity types with this component
-	sparse[ET_ID::MAX_ET_ID] = counter;
+	sparse[ET_ID::MAX_ET_ID] = (ET_ID)counter;
 	return sparse;
+}
+template<Comp_ID id,int N>
+consteval std::array<ET_ID, N> isInSparse() noexcept
+{
+	std::array<ET_ID, N> temp = {};
+	if (N == 0)
+	{
+		return temp;
+	}
+	int counter = 0;
+	for (int i = 0; i < ET_ID::MAX_ET_ID; ++i)
+	{
+		if (ComponentArray<id>::value[i])
+		{
+			temp[counter++] = (ET_ID)i;
+		}
+	}
+	return temp;
 }
 template<Comp_ID id, typename ComponentType = typename CompInfo<id>::type>
 struct Comp
@@ -54,7 +72,9 @@ struct Comp
 	static constexpr auto compArray = ComponentArray<id>::value;
 	//sparse set for ordering ETs which have this component, last value is total no of entitys with component.
 	static constexpr auto sparse = getCompSparse<id>();
-	static constexpr auto noOfETsWithComp = sparse[ET_ID::MAX_ET_ID];
+
+	static constexpr int noOfETsWithComp = sparse[ET_ID::MAX_ET_ID];
+	static constexpr auto ETsWithComp = isInSparse<id, noOfETsWithComp>();
 	//offsets for SS so they can be condensed - this doesn't need to be implemented for my uses i think.
 	static constexpr std::array<uint32_t, ET_ID::MAX_ET_ID> offsets = {};
 };

@@ -2,6 +2,8 @@
 #include "ETInfo.h"
 #include "CosntexprUtility.h"
 
+
+
 /*
 +2				+2
 <MA,2,1> --- <PROJ,1,0> --- <Obj,0,-1> (termination)
@@ -148,7 +150,7 @@ struct getNoOfComponents <id, inheritsFromSize, -1>
 	static constexpr int value = 0;
 };
 
-//need this specialization for as previous two are equal in this instance
+//need this specialization as previous two are equal in this instance
 template<ET_ID id>
 struct getNoOfComponents <id, 0, -1>
 {
@@ -228,7 +230,7 @@ struct ET
 	//All parents
 	static constexpr int noOfParents = noOfUniqueET_IDs(getParents<id>::value);
 	static constexpr std::array<ET_ID, noOfParents> parents = uniqueET_IDs<noOfParents>(getParents<id>::value);
-	//what new components are there. 
+	//what components are there. 
 	//static constexpr int noOfComponents = getNoOfComponents<id>::value + ETInfo<id>::noOfNewComponents;
 	//static constexpr std::array<Comp_ID, noOfComponents> components = concatinate(getComponents<id>::value, ETInfo<id>::newComponents);
 	//
